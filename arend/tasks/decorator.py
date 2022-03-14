@@ -1,16 +1,27 @@
-import functools
-from typing import Union
+from arend.tasks.async_task import AsyncTask
 from datetime import timedelta
+from typing import Union
+
+import functools
+import logging
 
 
-def register(
+logger = logging.getLogger(__name__)
+
+
+def arend_task(
     queue_name: str = None,
-    queue_priority: str = None,
-    delayed: Union[timedelta, int] = None
+    queue_priority: int = None,
+    queue_delay: Union[timedelta, int] = None,
+    exclusive: bool = False,
 ):
     """
-    Register functions as SQS async functions
+    Register functions as async functions
     Examples:
+
+    @arend_task()
+    def task(kwargs):
+        return "a result"
     """
 
     def decorator(func):
@@ -22,7 +33,8 @@ def register(
                 processor=func,
                 queue_name=queue_name,
                 queue_priority=queue_priority,
-                delayed=delayed,
+                queue_delay=queue_delay,
+                exclusive=exclusive,
             )
 
         return wrapper_register()

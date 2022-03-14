@@ -1,13 +1,10 @@
 from functools import lru_cache
-from arend.settings.base import Settings
+from arend.settings.settings import Settings
 
 
 @lru_cache
 def get_settings():
-
-
-
-    return Settings(**map_secrets)
+    return Settings()
 
 
 settings = get_settings()
