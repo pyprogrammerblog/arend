@@ -8,7 +8,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class MongoBackend:
+class SqlBackend:
     def __init__(self):
         self.db: MongoClient = MongoClient(settings.mongodb_string)
         collection = settings.mongodb_notifier_task_results

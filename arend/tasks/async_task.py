@@ -1,6 +1,6 @@
 from arend.settings import settings
 from arend.tasks.locking import Lock
-from arend.tube.task import QueueTask
+from arend.tube.task import Task
 from datetime import timedelta
 from pydantic import BaseModel
 from pystalkd.Beanstalkd import DEFAULT_PRIORITY
@@ -46,10 +46,11 @@ class AsyncTask(BaseModel):
         task_delay: Union[timedelta, int] = 0,
         args: tuple = None,
         kwargs: dict = None,
-    ) -> QueueTask:
+    ) -> Task:
         """
         Run task asynchronously.
         """
+        # settings
         queue_name = self.queue_name or queue_name or settings.queue_name
         task_delay = task_delay or self.task_delay or settings.task_delay or 0
         task_priority = (
@@ -59,8 +60,8 @@ class AsyncTask(BaseModel):
             or DEFAULT_PRIORITY
         )
 
-        # insert in mongo
-        queue_task = QueueTask(
+        # insert in backend
+        task = Task(
             task_name=self.task_name,
             task_location=self.task_location,
             queue_name=queue_name,
@@ -72,6 +73,7 @@ class AsyncTask(BaseModel):
             created=datetime.datetime.utcnow(),
         ).save()  # set as SCHEDULED (default)
 
-        queue_task.send_to_queue()  # put into the queue and set as PENDING
+        # broker send to queue
+        task.send_to_queue()  # put into the queue and set as PENDING
 
-        return queue_task  # return a PENDING task
+        return task  # return a PENDING task

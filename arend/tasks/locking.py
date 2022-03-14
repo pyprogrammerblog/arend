@@ -1,4 +1,4 @@
-from notifier.settings import settings
+from arend.settings import settings
 
 import logging
 import redis

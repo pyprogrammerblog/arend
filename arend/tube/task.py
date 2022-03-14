@@ -1,4 +1,5 @@
-from arend.brokers.beanstalkd import BeanstalkdConnector
+from arend.backends import Backend
+from arend.brokers import Broker
 from arend.settings import settings
 from arend.settings.status import FAIL
 from arend.settings.status import FINISHED
@@ -10,7 +11,6 @@ from arend.settings.status import STARTED
 from datetime import datetime
 from pydantic import BaseModel
 from pydantic import Field
-from pymongo import MongoClient
 from typing import Any
 from typing import Optional
 from uuid import uuid4
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_TTR = 30 * 60  # 30 min
 
 
-class QueueTask(BaseModel):
+class Task(BaseModel):
     uuid: str = Field(default_factory=lambda: str(uuid4()), description="ID")
     task_name: str = Field(description="Full path task name.")
     task_location: str = Field(description="Full path task location.")
@@ -53,29 +53,21 @@ class QueueTask(BaseModel):
 
     @classmethod
     def get(cls, uuid: str):
-        with MongoClient(settings.mongodb_string) as connection:
-            db = connection[settings.mongodb_notifier]
-            queue_task = db[settings.mongodb_notifier_task_results].find_one(
-                {"uuid": uuid}
-            )
+        with Backend() as backend:
+            queue_task = backend.find_one(uuid=uuid)
 
         if queue_task:
-            return QueueTask(**queue_task)
+            return Task(**queue_task)
 
     def save(self):
-        with MongoClient(settings.mongodb_string) as connection:
-            db = connection[settings.mongodb_notifier]
+        with Backend() as backend:
             self.updated = datetime.utcnow()
-            db[settings.mongodb_notifier_task_results].update_one(
-                filter={"uuid": self.uuid},
-                update={"$set": self.dict()},
-                upsert=True,
-            )
+            backend.update_one(task_uuid=self.uuid, to_update=self.dict())
         return self
 
     def send_to_queue(self):
-        with BeanstalkdConnector(queue_name=self.queue_name) as tube:
-            tube.put(
+        with Broker(queue_name=self.queue_name) as broker:
+            broker.add_to_queue(
                 body=self.uuid,
                 priority=self.task_priority,
                 delay=self.task_delay
