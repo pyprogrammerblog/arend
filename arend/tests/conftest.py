@@ -33,11 +33,11 @@ def purge_beanstalkd_queue():
     with BeanstalkdBroker(queue_name="test") as c:
         run = True
         while run:
-            job = c.reserve()
-            if job is None:
+            task_uuid = c.reserve()
+            if task_uuid is None:
                 run = False
             else:
-                job.delete()
+                c.delete(task_uuid=task_uuid)
 
 
 @pytest.fixture()

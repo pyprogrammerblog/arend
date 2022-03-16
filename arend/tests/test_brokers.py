@@ -20,8 +20,8 @@ def test_broker_beanstalkd(task, purge_queue):
     with BeanstalkdBroker(queue_name="test") as broker:
         broker.add_to_queue(task_uuid=task.uuid)
 
-        broker.connection.stats_tube(name="test")
-        broker.connection.stats_job(job_id=task.uuid)
+        assert broker.stats_tube()
+        assert broker.stats_job(task_uuid=task.uuid)
 
         task_uuid = broker.reserve()
         assert task_uuid == task.uuid

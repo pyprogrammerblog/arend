@@ -28,8 +28,16 @@ class BeanstalkdBroker(BaseBroker):
 
     def reserve(self) -> str:
         job = self.connection.reserve(timeout=settings.reserve_timeout)
-        return job.body
+        if job:
+            return job.body
 
     def delete(self, task_uuid: str):
         job = self.connection.parse_job(body=task_uuid)
         job.delete()
+
+    def stats_tube(self):
+        return self.connection.stats_tube(name=self.queue_name)
+
+    def stats_job(self, task_uuid: str):
+        job = self.connection.parse_job(body=task_uuid)
+        return self.connection.stats_job(job_id=job.id)
