@@ -15,13 +15,23 @@ def test_select_brokers():
     assert broker == BeanstalkdBroker
 
 
-def test_broker_mongo():
-    pass
+def test_broker_beanstalkd(task, purge_queue):
+
+    with BeanstalkdBroker(queue_name="test") as broker:
+        broker.add_to_queue(task_uuid=task.uuid)
+
+        broker.connection.stats_tube(name="test")
+        broker.connection.stats_job(job_id=task.uuid)
+
+        task_uuid = broker.reserve()
+        assert task_uuid == task.uuid
+
+        broker.delete(task_uuid)
 
 
 def test_broker_redis():
     pass
 
 
-def test_broker_sql():
+def test_broker_sqs():
     pass

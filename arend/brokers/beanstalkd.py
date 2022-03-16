@@ -3,8 +3,6 @@ from arend.settings import settings
 from pystalkd.Beanstalkd import Connection
 
 import logging
-import pystalkd
-import uuid
 
 
 logger = logging.getLogger(__name__)
@@ -25,12 +23,13 @@ class BeanstalkdBroker(BaseBroker):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.connection.close()
 
-    def add_to_queue(self, task_uuid: uuid.UUID):
-        self.connection.put(body=str(task_uuid))
+    def add_to_queue(self, task_uuid: str):
+        self.connection.put(body=task_uuid)
 
-    def reserve(self) -> pystalkd.Job:
+    def reserve(self) -> str:
         job = self.connection.reserve(timeout=settings.reserve_timeout)
-        return job
+        return job.body
 
-    def delete(self, job: pystalkd.Job):
+    def delete(self, task_uuid: str):
+        job = self.connection.parse_job(body=task_uuid)
         job.delete()

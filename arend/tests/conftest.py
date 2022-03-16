@@ -1,3 +1,4 @@
+from arend.brokers.beanstalkd import BeanstalkdBroker
 from arend.settings import settings
 from arend.tube.task import Task
 from pymongo import MongoClient
@@ -25,6 +26,25 @@ def delete_tasks():
         collection.delete_many({})
         yield
         collection.delete_many({})
+
+
+def purge_beanstalkd_queue():
+    settings.reserve_timeout = 0
+    with BeanstalkdBroker(queue_name="test") as c:
+        run = True
+        while run:
+            job = c.reserve()
+            if job is None:
+                run = False
+            else:
+                job.delete()
+
+
+@pytest.fixture()
+def purge_queue():
+    purge_beanstalkd_queue()
+    yield
+    purge_beanstalkd_queue()
 
 
 # @arend_task(queue_name="test")
