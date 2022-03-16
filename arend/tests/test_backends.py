@@ -36,6 +36,7 @@ def test_backend_mongo(task, delete_tasks):
             assert task_dict["location"] == task.location
             assert task_dict["detail"] == task.detail
 
+        with MongoBackend() as backend:
             assert backend.delete_one(uuid=str(task.uuid))
 
         assert 0 == collection.count_documents({})

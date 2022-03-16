@@ -28,4 +28,5 @@ class MongoBackend(TasksBackend):
         self.tasks.update_one({"uuid": uuid}, {"$set": update}, upsert=True)
 
     def delete_one(self, uuid: str):
-        self.tasks.delete_one({"uuid": uuid})
+        result = self.tasks.delete_one({"uuid": uuid})
+        return result.deleted_count
