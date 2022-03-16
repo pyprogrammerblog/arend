@@ -11,6 +11,7 @@ pystalkd = "*"
 pydantic = "*"
 pytest = "*"
 mock = "*"
+pyyaml = "*"
 
 [dev-packages]
 ipython = "*"

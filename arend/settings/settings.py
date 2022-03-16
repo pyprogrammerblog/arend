@@ -32,5 +32,5 @@ class Settings(BaseSettings):
     broker: Literal["redis", "beanstalk", "sqs"] = None
     backend: Literal["redis", "postgres", "mongo"] = None
 
-    beanstalkd_host: str = None
-    beanstalkd_port: int = None
+    beanstalkd_host: str = "beanstalkd"
+    beanstalkd_port: int = 11300

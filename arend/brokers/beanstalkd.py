@@ -1,5 +1,6 @@
 from arend.brokers.base import BaseBroker
 from arend.settings import settings
+from pystalkd import Job
 from pystalkd.Beanstalkd import Connection
 
 import logging
@@ -26,18 +27,15 @@ class BeanstalkdBroker(BaseBroker):
     def add_to_queue(self, task_uuid: str):
         self.connection.put(body=task_uuid)
 
-    def reserve(self) -> str:
+    def reserve(self) -> Job:
         job = self.connection.reserve(timeout=settings.reserve_timeout)
-        if job:
-            return job.body
+        return job
 
-    def delete(self, task_uuid: str):
-        job = self.connection.parse_job(body=task_uuid)
+    def delete(self, job: Job):
         job.delete()
 
     def stats_tube(self):
         return self.connection.stats_tube(name=self.queue_name)
 
-    def stats_job(self, task_uuid: str):
-        job = self.connection.parse_job(body=task_uuid)
-        return self.connection.stats_job(job_id=job.id)
+    def stats_job(self, job: Job):
+        return self.connection.stats_job(job_id=job.job_id)
