@@ -17,7 +17,7 @@ def test_select_backend():
     assert backend == MongoBackend
 
 
-def test_backend_mongo(task, delete_tasks):
+def test_backend_mongo(task, delete_mongo_tasks):
 
     with MongoClient(settings.mongodb_string) as client:
         db = client[settings.mongodb_db]
@@ -42,8 +42,26 @@ def test_backend_mongo(task, delete_tasks):
         assert 0 == collection.count_documents({})
 
 
-def test_backend_redis():
-    pass
+def test_backend_redis(task, delete_redis_tasks):
+
+    with RedisBackend() as backend:
+        assert 0 == len(backend.redis.keys())
+
+    with RedisBackend() as backend:
+        backend.update_one(uuid=task.uuid, update=task.dict())
+        assert 1 == len(backend.redis.keys())
+
+    with RedisBackend() as backend:
+        task_dict = backend.find_one(uuid=task.uuid)
+        assert task_dict["uuid"] == task.uuid
+        assert task_dict["location"] == task.location
+        assert task_dict["detail"] == task.detail
+        assert task_dict["created"] == task.created
+
+    with RedisBackend() as backend:
+        assert 1 == backend.delete_one(uuid=task.uuid)
+        assert 0 == backend.delete_one(uuid=task.uuid)
+        assert 0 == len(backend.redis.keys())
 
 
 def test_backend_sql():

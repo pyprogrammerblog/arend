@@ -14,8 +14,12 @@ class Settings(BaseSettings):
     sleep_time_consumer: int = 1
 
     # redis settings
-    redis_socket_timeout: int = 2 * 60
-    redis_socket_connect_timeout: int = 2 * 60
+    redis_host: str = "redis"
+    redis_port: int = 6379
+    redis_db: int = 15
+    redis_password: str = "password"
+    socket_timeout: int = 2 * 60
+    socket_connect_timeout: int = 2 * 60
 
     # mongo backend settings
     mongodb_string: str = "mongodb://mongo:mongo@mongo:27017"
