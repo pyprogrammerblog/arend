@@ -17,7 +17,7 @@ def test_select_backend():
     assert backend == MongoBackend
 
 
-def test_backend_mongo(task):
+def test_backend_mongo(task, delete_tasks):
 
     with MongoClient(settings.mongodb_string) as client:
         db = client[settings.mongodb_db]
@@ -31,8 +31,12 @@ def test_backend_mongo(task):
         assert 1 == collection.count_documents({})
 
         with MongoBackend() as backend:
-            assert task == backend.find_one(uuid=task.uuid)
-            assert backend.delete_one(uuid=task.uuid)
+            task_dict = backend.find_one(uuid=task.uuid)
+            assert task_dict["uuid"] == task.uuid
+            assert task_dict["location"] == task.location
+            assert task_dict["detail"] == task.detail
+
+            assert backend.delete_one(uuid=str(task.uuid))
 
         assert 0 == collection.count_documents({})
 

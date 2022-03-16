@@ -52,11 +52,11 @@ class AsyncTask(BaseModel):
         """
         # settings
         queue_name = self.queue_name or queue_name or settings.queue_name
-        task_delay = task_delay or self.task_delay or settings.task_delay or 0
+        task_delay = task_delay or self.task_delay or settings.delay or 0
         task_priority = (
             task_priority
             or self.task_priority
-            or settings.task_priority
+            or settings.priority
             or DEFAULT_PRIORITY
         )
 

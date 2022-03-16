@@ -1,4 +1,6 @@
+from arend.settings import settings
 from arend.tube.task import Task
+from pymongo import MongoClient
 
 import pytest
 
@@ -6,13 +8,23 @@ import pytest
 @pytest.fixture(scope="session")
 def task() -> Task:
     task = Task(
-        task_name="name",
-        task_location="location",
+        name="name",
+        location="location",
         queue_name="queue",
-        task_priority=1,
-        task_delay=1,
+        priority=1,
+        delay=1,
     )
     return task
+
+
+@pytest.fixture(scope="function")
+def delete_tasks():
+    with MongoClient(settings.mongodb_string) as connection:
+        db = connection[settings.mongodb_db]
+        collection = db[settings.mongodb_db_tasks]
+        collection.delete_many({})
+        yield
+        collection.delete_many({})
 
 
 # @arend_task(queue_name="test")

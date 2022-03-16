@@ -22,12 +22,10 @@ class MongoBackend(TasksBackend):
         self.client.close()
 
     def find_one(self, uuid: str):
-        self.tasks.find_one(filter={"uuid": uuid})
+        return self.tasks.find_one({"uuid": uuid}, {"_id": 0})
 
     def update_one(self, uuid: str, update: dict):
-        self.tasks.update_one(
-            filter={"uuid": uuid}, update={"$set": update}, upsert=True
-        )
+        self.tasks.update_one({"uuid": uuid}, {"$set": update}, upsert=True)
 
     def delete_one(self, uuid: str):
         self.tasks.delete_one(filter={"uuid": uuid})

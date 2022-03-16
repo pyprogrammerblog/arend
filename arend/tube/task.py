@@ -31,8 +31,8 @@ DEFAULT_TTR = 30 * 60  # 30 min
 
 class Task(BaseModel):
     uuid: str = Field(default_factory=lambda: str(uuid4()), description="ID")
-    task_name: str = Field(description="Full path task name.")
-    task_location: str = Field(description="Full path task location.")
+    name: str = Field(description="Full path task name.")
+    location: str = Field(description="Full path task location.")
     status: str = Field(default=SCHEDULED, description="Current status.")
     result: Optional[Any] = Field(default=None, description="Task result.")
     detail: str = Field(default="", description="Task details.")
@@ -47,8 +47,8 @@ class Task(BaseModel):
     kwargs: dict = Field(default_factory=dict, description="Task arguments.")
 
     queue_name: str = Field(description="Queue name.")
-    task_priority: int = Field(description="Queue priority.")
-    task_delay: int = Field(description="Queue delay.")
+    priority: int = Field(description="Queue priority.")
+    delay: int = Field(description="Queue delay.")
 
     created: datetime = Field(default_factory=datetime.utcnow)
     updated: datetime = None
@@ -76,9 +76,8 @@ class Task(BaseModel):
         with Broker(queue_name=self.queue_name) as broker:
             broker.add_to_queue(
                 body=self.uuid,
-                priority=self.task_priority,
-                delay=self.task_delay
-                + self.count_retries * settings.delay_factor,
+                priority=self.priority,
+                delay=self.delay + self.count_retries * settings.delay_factor,
                 ttr=DEFAULT_TTR,
             )
         self.status = PENDING
@@ -121,7 +120,7 @@ class Task(BaseModel):
             from arend.tasks.registered_tasks import registered_tasks
 
             registered = registered_tasks(locations=["python"])
-            task = registered[self.task_location]
+            task = registered[self.location]
 
             result = task.run(*self.args, **self.kwargs)
 
