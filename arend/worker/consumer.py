@@ -1,4 +1,4 @@
-from arend.brokers import QueueBroker
+from arend.brokers import Broker
 from arend.settings import settings
 from arend.tube.task import Task
 
@@ -12,18 +12,13 @@ logger = logging.getLogger(__name__)
 def consumer(queue_name: str, timeout: int = 20, testing: bool = False):
     """
     Single consumer.
-
-    :param queue_name:
-    :param timeout:
-    :param testing:
-    :return:
     """
 
     run = True
 
     while run:
 
-        with QueueBroker(queue_name=queue_name) as broker:
+        with Broker(queue_name=queue_name) as broker:
 
             message = broker.reserve(timeout=timeout)
             if message is None and testing:  # for testing purposes

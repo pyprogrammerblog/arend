@@ -6,13 +6,13 @@ from functools import lru_cache
 
 
 @lru_cache
-def get_queue_backend():
+def get_queue_backend(backend: str):
     backends = {
         "redis": RedisBackend,
         "mongo": MongoBackend,
         "sql": SqlBackend,
     }
-    return backends.get(settings.broker)
+    return backends.get(backend)
 
 
-QueueBroker = get_queue_backend()
+Backend = get_queue_backend(backend=settings.backend)

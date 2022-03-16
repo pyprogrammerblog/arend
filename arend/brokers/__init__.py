@@ -6,13 +6,13 @@ from functools import lru_cache
 
 
 @lru_cache
-def get_queue_broker():
+def get_queue_broker(broker: str):
     brokers = {
         "beanstalk": BeanstalkdBroker,
         "redis": RedisBroker,
         "sqs": SQSBroker,
     }
-    return brokers.get(settings.broker)
+    return brokers.get(broker)
 
 
-QueueBroker = get_queue_broker()
+Broker = get_queue_broker(broker=settings.broker)

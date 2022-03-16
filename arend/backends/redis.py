@@ -1,27 +1,38 @@
+from arend.backends.base import TasksBackend
 from arend.settings import settings
-from pymongo import MongoClient
-from pymongo.collection import Collection
 
+import json
 import logging
+import redis
 
 
 logger = logging.getLogger(__name__)
 
 
-class RedisBackend:
+class RedisBackend(TasksBackend):
     def __init__(self):
-        self.db: MongoClient = MongoClient(settings.mongodb_string)
-        collection = settings.mongodb_notifier_task_results
-        self.tasks_collection: Collection = self.db[collection]
+        self.conn = redis.Redis(
+            host=settings.redis_host,
+            port=settings.redis_port,
+            db=settings.redis_db,
+            password=settings.redis_password,
+            socket_timeout=settings.socket_timeout,
+            socket_connect_timeout=settings.socket_connect_timeout,
+        )
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.db.close()
+        self.conn.close()
 
-    def find_one(self):
-        pass
+    def find_one(self, uuid: str):
+        task = self.conn.get(uuid)
+        if task:
+            return json.dumps(task)
 
-    def update_one(self):
-        pass
+    def update_one(self, uuid: str, update: dict):
+        self.conn.set(uuid, json.dumps(update))
+
+    def delete_one(self, uuid: str):
+        self.conn.delete(uuid)

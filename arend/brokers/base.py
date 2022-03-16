@@ -1,5 +1,4 @@
 import logging
-import pystalkd
 import uuid
 
 
@@ -16,7 +15,7 @@ class BaseBroker:
     def add_to_queue(self, task_uuid: uuid.UUID):
         raise NotImplementedError
 
-    def reserve(self, timeout: int = None) -> pystalkd.Job:
+    def reserve(self):
         raise NotImplementedError
 
     def delete(self, job):

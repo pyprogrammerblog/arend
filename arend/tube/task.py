@@ -11,12 +11,16 @@ from arend.settings.status import STARTED
 from datetime import datetime
 from pydantic import BaseModel
 from pydantic import Field
+from sqlalchemy.ext.declarative import declarative_base
 from typing import Any
 from typing import Optional
 from uuid import uuid4
 
 import logging
 import traceback
+
+
+Base = declarative_base()
 
 
 logger = logging.getLogger(__name__)
@@ -50,6 +54,9 @@ class Task(BaseModel):
     updated: datetime = None
     exclusive: bool = False
     count_retries: int = 0
+
+    class Config:
+        orm_mode = True
 
     @classmethod
     def get(cls, uuid: str):
@@ -113,7 +120,7 @@ class Task(BaseModel):
 
             from arend.tasks.registered_tasks import registered_tasks
 
-            registered = registered_tasks(locations=["notifier"])
+            registered = registered_tasks(locations=["python"])
             task = registered[self.task_location]
 
             result = task.run(*self.args, **self.kwargs)

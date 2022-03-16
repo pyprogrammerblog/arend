@@ -1,31 +1,35 @@
+from arend.settings import settings
 from arend.worker.consumer import consumer
 from multiprocessing import Pool
 
-import click
 import logging
 
 
 logger = logging.getLogger(__name__)
 
 
-@click.command(name="Start Processor")
-@click.argument("args", nargs=-1)
-def pool_processor(args):
+__all__ = ["pool_processor"]
+
+
+def pool_processor():
     """
     Pool processor.
 
-    :param args: str.
-
     Example:
-    ```python3 /path/to/pool_processor --queue_1=2 --queue_2=3```
+    ```/path/to/python3 /path/to/worker.py```
     """
 
-    # parse arguments
+    if not settings.queues:
+        raise ValueError("Please define queue(s) in settings")
+
     queues = []
-    for arg in args:
-        queue, concurrency = arg.split("=")
+    for queue, concurrency in settings.queues.items():
         queues.extend([queue] * int(concurrency))
 
     # get the pool and map the consumers
     with Pool(processes=len(queues)) as pool:
         pool.map(consumer, queues)
+
+
+if __name__ == "__main__":
+    pool_processor()

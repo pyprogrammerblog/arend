@@ -28,8 +28,8 @@ class BeanstalkdBroker(BaseBroker):
     def add_to_queue(self, task_uuid: uuid.UUID):
         self.connection.put(body=str(task_uuid))
 
-    def reserve(self, timeout: int = None) -> pystalkd.Job:
-        job = self.connection.reserve(timeout=timeout)
+    def reserve(self) -> pystalkd.Job:
+        job = self.connection.reserve(timeout=settings.reserve_timeout)
         return job
 
     def delete(self, job: pystalkd.Job):

@@ -9,8 +9,10 @@ long_description = "\n\n".join([open("README.rst").read(), open("CHANGES.rst").r
 
 install_requires = [
     "pydantic",
+    "redis",
     "pymongo",
     "pystalkd",
+    "sqlalchemy",
 ]
 
 # emulate "--no-deps" on the readthedocs build (there is no way to specify this
@@ -19,23 +21,16 @@ if os.environ.get("READTHEDOCS") == "True":
     install_requires = []
 
 
-tests_require = [
-    "requests",
-    "pytest",
-    "mock",
-    "pydantic",
-    "pymongo",
-    "pystalkd",
-]
+tests_require = ["pytest", "mock"]
 
 setup(
-    name="Arend",
+    name="arend",
     version=version,
-    description="A ",
+    description="A simple producer-consumer library for python",
     long_description=long_description,
     # Get strings from http://www.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
-        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6+",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],

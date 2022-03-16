@@ -1,23 +1,8 @@
-from typing import Literal
-
-from pydantic import (
-    BaseModel,
-    BaseSettings,
-    RedisDsn,
-    PostgresDsn,
-    AmqpDsn,
-)
+from typing import Literal, Dict
+from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
-
-    # brokers
-    broker: Literal["redis", "beanstalk", "sqs"]
-    broker_uri: str
-
-    # backends
-    backend: Literal["redis", "postgres", "ampqn", "beanstalk", "sqs"]
-    backend_uri: str
 
     # general settings
     max_retries: int = 10
@@ -33,5 +18,19 @@ class Settings(BaseSettings):
     redis_socket_connect_timeout: int = 2 * 60
 
     # mongo backend settings
+    mongodb_string: str = "mongodb://mongo:mongo@mongo:27017"
     mongodb_max_pool_size: int = 10
     mongodb_min_pool_size: int = 0
+    mongodb_db: str = "tasks"
+    mongodb_db_tasks: str = "tasks"
+
+    # queues: key: name of the queue, value: concurrency
+    queues: Dict[str, int] = None
+    reserve_timeout: int = 20
+
+    # brokers and backends
+    broker: Literal["redis", "beanstalk", "sqs"] = None
+    backend: Literal["redis", "postgres", "mongo"] = None
+
+    beanstalkd_host: str = None
+    beanstalkd_port: int = None
