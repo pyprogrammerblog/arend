@@ -5,14 +5,14 @@ from arend.brokers.sqs import SQSBroker
 
 
 def test_select_brokers():
-    backend = get_queue_broker(broker="redis")
-    assert backend == RedisBroker
+    broker = get_queue_broker(broker="redis")
+    assert broker == RedisBroker
 
-    backend = get_queue_broker(broker="sql")
-    assert backend == SQSBroker
+    broker = get_queue_broker(broker="sqs")
+    assert broker == SQSBroker
 
-    backend = get_queue_broker(broker="beanstalkd")
-    assert backend == BeanstalkdBroker
+    broker = get_queue_broker(broker="beanstalkd")
+    assert broker == BeanstalkdBroker
 
 
 def test_broker_mongo():

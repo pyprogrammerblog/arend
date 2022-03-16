@@ -8,7 +8,7 @@ from functools import lru_cache
 @lru_cache
 def get_queue_broker(broker: str):
     brokers = {
-        "beanstalk": BeanstalkdBroker,
+        "beanstalkd": BeanstalkdBroker,
         "redis": RedisBroker,
         "sqs": SQSBroker,
     }
