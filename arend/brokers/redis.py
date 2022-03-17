@@ -1,8 +1,6 @@
 from arend.brokers.base import BaseBroker
 
 import logging
-import pystalkd
-import uuid
 
 
 logger = logging.getLogger(__name__)
@@ -18,11 +16,11 @@ class RedisBroker(BaseBroker):
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
-    def add_to_queue(self, task_uuid: uuid.UUID):
+    def add_to_queue(self, task_uuid: str):
         pass
 
     def reserve(self, timeout: int = None):
         pass
 
-    def delete(self, job: pystalkd.Job):
+    def delete(self, task_uuid: str):
         pass

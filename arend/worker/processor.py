@@ -16,7 +16,8 @@ def pool_processor():
     Pool processor.
 
     Example:
-    ```/path/to/python3 /path/to/worker.py```
+
+    ```/path/to/python3 /path/to/processor.py```
     """
 
     if not settings.queues:

@@ -33,8 +33,8 @@ class Settings(BaseSettings):
     reserve_timeout: int = 20
 
     # brokers and backends
-    broker: Literal["redis", "beanstalk", "sqs"] = None
-    backend: Literal["redis", "postgres", "mongo"] = None
+    broker: Literal["redis", "beanstalkd", "sqs"] = "beanstalkd"
+    backend: Literal["redis", "postgres", "mongo"] = "mongo"
 
     beanstalkd_host: str = "beanstalkd"
     beanstalkd_port: int = 11300

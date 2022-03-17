@@ -1,4 +1,4 @@
-from arend.backends import get_queue_backend
+from arend.backends import get_backend
 from arend.backends.mongo import MongoBackend
 from arend.backends.redis import RedisBackend
 from arend.backends.sql import SqlBackend
@@ -7,13 +7,13 @@ from pymongo import MongoClient
 
 
 def test_select_backend():
-    backend = get_queue_backend(backend="redis")
+    backend = get_backend(backend="redis")
     assert backend == RedisBackend
 
-    backend = get_queue_backend(backend="sql")
+    backend = get_backend(backend="sql")
     assert backend == SqlBackend
 
-    backend = get_queue_backend(backend="mongo")
+    backend = get_backend(backend="mongo")
     assert backend == MongoBackend
 
 

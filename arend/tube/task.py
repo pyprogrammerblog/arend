@@ -1,5 +1,5 @@
-from arend.backends import Backend
-from arend.brokers import Broker
+from arend.backends import get_backend
+from arend.brokers import get_broker
 from arend.settings import settings
 from arend.settings.status import FAIL
 from arend.settings.status import FINISHED
@@ -27,6 +27,8 @@ logger = logging.getLogger(__name__)
 
 
 DEFAULT_TTR = 30 * 60  # 30 min
+Backend = get_backend(settings.backend)
+Broker = get_broker(settings.broker)
 
 
 class Task(BaseModel):
