@@ -18,10 +18,27 @@ def test_pool_processor():
     pool_processor()
 
 
-def test_consumer_broker_beanstalkd_backend_mongo(purge_queue):
+def test_consumer(purge_queue):
+    # test settings
     settings.reserve_timeout = 0
     settings.consumer_testing = True
+
+    # broker - beanstalkd - backend - mongo
     settings.broker = "beanstalkd"
     settings.backend = "mongo"
+    consumer(queue_name="queue")
 
+    # broker - beanstalkd - backend - mongo
+    settings.broker = "beanstalkd"
+    settings.backend = "sql"
+    consumer(queue_name="queue")
+
+    # broker - beanstalkd - backend - mongo
+    settings.broker = "beanstalkd"
+    settings.backend = "redis"
+    consumer(queue_name="queue")
+
+    # broker - beanstalkd - backend - mongo
+    settings.broker = "redis"
+    settings.backend = "redis"
     consumer(queue_name="queue")
