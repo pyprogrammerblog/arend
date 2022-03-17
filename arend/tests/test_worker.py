@@ -28,17 +28,17 @@ def test_consumer(purge_queue):
     settings.backend = "mongo"
     consumer(queue_name="queue")
 
-    # broker - beanstalkd - backend - mongo
-    settings.broker = "beanstalkd"
-    settings.backend = "sql"
-    consumer(queue_name="queue")
-
-    # broker - beanstalkd - backend - mongo
-    settings.broker = "beanstalkd"
-    settings.backend = "redis"
-    consumer(queue_name="queue")
-
-    # broker - beanstalkd - backend - mongo
-    settings.broker = "redis"
-    settings.backend = "redis"
-    consumer(queue_name="queue")
+    # # broker - beanstalkd - backend - mongo
+    # settings.broker = "beanstalkd"
+    # settings.backend = "sql"
+    # consumer(queue_name="queue")
+    #
+    # # broker - beanstalkd - backend - mongo
+    # settings.broker = "beanstalkd"
+    # settings.backend = "redis"
+    # consumer(queue_name="queue")
+    #
+    # # broker - beanstalkd - backend - mongo
+    # settings.broker = "redis"
+    # settings.backend = "redis"
+    # consumer(queue_name="queue")
