@@ -38,3 +38,6 @@ class Settings(BaseSettings):
 
     beanstalkd_host: str = "beanstalkd"
     beanstalkd_port: int = 11300
+
+    # testing
+    consumer_testing: bool = False

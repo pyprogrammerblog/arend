@@ -9,7 +9,7 @@ import time
 logger = logging.getLogger(__name__)
 
 
-def consumer(queue_name: str, testing: bool = False):
+def consumer(queue_name: str):
     """
     Single consumer.
     """
@@ -21,7 +21,7 @@ def consumer(queue_name: str, testing: bool = False):
         with get_broker(settings.broker)(queue_name=queue_name) as broker:
 
             message = broker.reserve()
-            if message is None and testing:  # for testing purposes
+            if message is None and settings.consumer_testing:  # for testing
                 run = False
                 continue
 
