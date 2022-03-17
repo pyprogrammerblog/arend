@@ -10,5 +10,6 @@ def get_broker(broker):
         "beanstalkd": BeanstalkdBroker,
         "redis": RedisBroker,
         "sqs": SQSBroker,
+        # to be add more...
     }
     return brokers.get(broker)
