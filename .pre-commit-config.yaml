@@ -18,5 +18,3 @@ repos:
   - id: check-merge-conflict
   - id: check-yaml
   - id: flake8
-    # NB The "exclude" setting in setup.cfg is ignored by pre-commit
-#    exclude: '|'

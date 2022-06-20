@@ -1,12 +1,10 @@
-from arend.backends.base import TasksBackend
-from arend.settings import settings
-from arend.utils.json import Decoder
-from arend.utils.json import Encoder
-
 import json
 import logging
-import redis
 
+import redis
+from arend.backends.base import BaseBackend, TasksBackend
+from arend.settings import settings
+from arend.utils.json import Decoder, Encoder
 
 logger = logging.getLogger(__name__)
 

@@ -1,8 +1,7 @@
+import pytest
 from arend.settings import settings
 from arend.worker.consumer import consumer
 from arend.worker.processor import pool_processor
-
-import pytest
 
 
 def test_pool_processor():

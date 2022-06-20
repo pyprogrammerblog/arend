@@ -1,10 +1,9 @@
+import logging
+
 from arend.brokers.base import BaseBroker
 from arend.settings import settings
 from pystalkd import Job
 from pystalkd.Beanstalkd import Connection
-
-import logging
-
 
 logger = logging.getLogger(__name__)
 
@@ -15,8 +14,8 @@ class BeanstalkdBroker(BaseBroker):
         self.connection = Connection(
             host=settings.beanstalkd_host, port=settings.beanstalkd_port
         )
-        self.connection.watch(name=queue_name)
-        self.connection.use(name=queue_name)
+        self.connection.watch(name=self.queue_name)
+        self.connection.use(name=self.queue_name)
 
     def __enter__(self):
         return self

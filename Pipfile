@@ -12,6 +12,8 @@ pydantic = "*"
 pytest = "*"
 mock = "*"
 pyyaml = "*"
+fastapi = "*"
+sqlmodel = "*"
 
 [dev-packages]
 ipython = "*"
