@@ -33,12 +33,12 @@ class MongoBackend(BaseBackend):
         db_conn = (
             cls.Meta.db_connection
             if hasattr(cls.Meta, "db_connection")
-            else DBAdapter.Meta.db_connection
+            else MongoBackend.Meta.db_connection
         )
         db_name = (
             cls.Meta.db_name
             if hasattr(cls.Meta, "db_name")
-            else DBAdapter.Meta.db_name
+            else MongoBackend.Meta.db_name
         )
         db_collection = cls.Meta.db_collection or "default"
 

@@ -1,42 +1,40 @@
 version: '3.3'
 services:
 
-  beanstalkd:
-    build: docker/beanstalkd
-    image: beanstalkd
-    command: /usr/bin/beanstalkd -b /var/lib/beanstalkd
+  rabbitmq:
+    image: rabbitmq:latest
+    container_name: 'rabbitmq'
     ports:
-      - 11300:11300
+      - 5672:5672
 
   redis:
     image: redis:latest
+    container_name: 'redis'
     command: redis-server --requirepass 'password'
 
   mongo:
     image: mongo:latest
+    container_name: 'mongo'
     environment:
       MONGO_INITDB_ROOT_USERNAME: "mongo"
       MONGO_INITDB_ROOT_PASSWORD: "mongo"
     ports:
       - 27017:27017
 
-  mysqldb:
-    image: mysql:latest
-    command: mysqld --sql_mode=""
+  postgres:
+    image: postgres:latest
+    container_name: 'postgres'
     environment:
-      MYSQL_DATABASE: 'database'
-      MYSQL_USER: 'user'
-      MYSQL_PASSWORD: 'password'
-      MYSQL_ROOT_PASSWORD: 'password'
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
     ports:
-      - '3306:3306'
+      - '5432:5432'
 
   python:
     build: docker/python
     image: python
-    container_name: python
+    container_name: 'python'
     depends_on:
-      - beanstalkd
       - redis
       - mysqldb
       - mongo
@@ -48,6 +46,3 @@ services:
       - SHELL=/bin/bash
     volumes:
       - ./:/code
-      - ${SECRETS_PATH:-./config.json}:/code/config.json
-      - ~$USER/.cache:/home/python/.cache  # shared cache
-  #     - ./var/log:/code/var/log

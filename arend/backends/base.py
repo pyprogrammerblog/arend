@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 logger = logging.getLogger(__name__)
 
 
-__all__ = ["BaseBackend"]
+__all__ = ["BaseBackend", "Status"]
 
 
 class Status:
