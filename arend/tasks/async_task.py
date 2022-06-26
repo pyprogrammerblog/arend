@@ -72,7 +72,7 @@ class AsyncTask(BaseModel):
             kwargs=kwargs or {},
             exclusive=self.exclusive,
             created=datetime.datetime.utcnow(),
-        ).save()  # set as SCHEDULED (default)
+        ).save()  # set as PENDING (default)
 
         # broker send to queue
         task.send_to_queue()  # put into the queue and set as PENDING

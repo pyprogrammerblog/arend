@@ -1,5 +1,5 @@
 FROM alpine
-LABEL maintainer="JM Vazquez"
+LABEL maintainer="Jose Maria Vazquez Jimenez"
 
 RUN apk add --no-cache beanstalkd
 

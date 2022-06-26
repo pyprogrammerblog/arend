@@ -1,20 +1,20 @@
 import logging
 from contextlib import contextmanager
 from datetime import datetime
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from arend.backends.base import BaseBackend
 from arend.settings import settings
 from pymongo.collection import Collection
 from pymongo.mongo_client import MongoClient
 
-__all__ = ["MongoBackend"]
+__all__ = ["Task"]
 
 
 logger = logging.getLogger(__name__)
 
 
-class MongoBackend(BaseBackend):
+class Task(BaseBackend):
     """
     Mongo DB Adapter
     """
@@ -33,12 +33,12 @@ class MongoBackend(BaseBackend):
         db_conn = (
             cls.Meta.db_connection
             if hasattr(cls.Meta, "db_connection")
-            else MongoBackend.Meta.db_connection
+            else Task.Meta.db_connection
         )
         db_name = (
             cls.Meta.db_name
             if hasattr(cls.Meta, "db_name")
-            else MongoBackend.Meta.db_name
+            else Task.Meta.db_name
         )
         db_collection = cls.Meta.db_collection or "default"
 

@@ -1,9 +1,8 @@
-from arend.settings import settings
-from arend.worker.consumer import consumer
+import logging
 from multiprocessing import Pool
 
-import logging
-
+from arend.settings import settings
+from arend.worker.consumer import consumer
 
 logger = logging.getLogger(__name__)
 

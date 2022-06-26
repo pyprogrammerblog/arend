@@ -1,11 +1,9 @@
-from inspect import getmembers
-from notifier.arend.tasks.async_task import AsyncTask
-from typing import Dict
-from typing import List
-
 import importlib
 import logging
+from inspect import getmembers
+from typing import Dict, List
 
+from notifier.arend.tasks.async_task import AsyncTask
 
 logger = logging.getLogger(__name__)
 

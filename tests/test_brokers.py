@@ -1,7 +1,7 @@
-from arend.brokers import get_broker
-from arend.brokers.beanstalkd import BeanstalkdBroker
-from arend.brokers.redis import RedisBroker
-from arend.brokers.sqs import SQSBroker
+from arend.broker import get_broker
+from arend.broker.beanstalkd import BeanstalkdBroker
+from arend.broker.redis import RedisBroker
+from arend.broker.sqs import SQSBroker
 from arend.settings import settings
 
 

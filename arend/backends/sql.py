@@ -1,29 +1,28 @@
 import logging
-from typing import Union
 from datetime import datetime
-from uuid import UUID, uuid4
+from typing import Union
+from uuid import UUID
 
 from arend.backends.base import BaseBackend
-from sqlmodel import Field, SQLModel
+from sqlmodel import Session, SQLModel
 
-__all__ = ["SQLBackend"]
+__all__ = ["Task"]
 
 
 logger = logging.getLogger(__name__)
 
 
-class SQLBackend(BaseBackend, SQLModel, table=True):
+class Task(BaseBackend, SQLModel, table=True):
     """
     Mongo DB Adapter
     """
-    uuid: UUID = Field(default_factory=uuid4, primary_key=True)
 
     @classmethod
-    def get(cls, uuid: UUID):
+    def get(cls, uuid: UUID) -> Union["Task", None]:
         """
         Get object from DataBase
         """
-        with SessionManager(engine) as session:
+        with Session(settings.backend.engine) as session:
             return session.query(cls).get(uuid)
 
     def save(self):
@@ -31,17 +30,19 @@ class SQLBackend(BaseBackend, SQLModel, table=True):
         Updates object in DataBase
         """
         self.updated = datetime.utcnow()
-        with SessionManager(engine) as session:
-
+        with Session(settings.backend.engine) as session:
+            session.add(self)
+            session.commit()
+            session.refresh(self)
 
         return self
 
-    def delete(self) -> Union[int, None]:
+    def delete(self) -> Union[UUID, None]:
         """
         Deletes object in DataBase
         """
-        with SessionManager(engine) as session:
-            if task := session.query(self).get(self.uuid):
-                session.delete(task)
+        with Session(settings.backend.engine) as session:
+            if session.query(self).get(self.uuid):
+                session.delete(self)
                 session.commit()
-                return task.uuid
+                return self.uuid

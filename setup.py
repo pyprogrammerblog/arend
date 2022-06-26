@@ -1,7 +1,6 @@
-from setuptools import setup
-
 import os
 
+from setuptools import setup
 
 version = "0.0.1"
 

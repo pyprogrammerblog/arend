@@ -1,10 +1,9 @@
-from arend.brokers import get_broker
-from arend.settings import settings
-from arend.tube.task import Task
-
 import logging
 import time
 
+from arend.broker import get_broker
+from arend.settings import settings
+from arend.tube.task import Task
 
 logger = logging.getLogger(__name__)
 

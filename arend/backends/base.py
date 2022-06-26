@@ -2,17 +2,16 @@ import abc
 import logging
 import traceback
 from datetime import datetime
-from typing import Any, List, Optional
+from typing import Any, Optional
 from uuid import UUID, uuid4
 
 from arend.settings import settings
-from arend.utils.locking import Lock
 from pydantic import BaseModel, Field
 
-logger = logging.getLogger(__name__)
-
-
 __all__ = ["BaseBackend", "Status"]
+
+
+logger = logging.getLogger(__name__)
 
 
 class Status:
@@ -28,17 +27,38 @@ class BaseBackend(BaseModel, abc.ABC):
     Base Task
     """
 
-    uuid: UUID = Field(default_factory=uuid4, description="UUID")
-    description: str = Field(default=None, description="Description")
-    status: str = Field(default=Status.PENDING, description="Status")
+    uuid: UUID = Field(default_factory=uuid4, description="UID")
+    status: str = Field(default=Status.PENDING, description="Current status")
+    exclusive: bool = Field(default=False, description="")
     result: Optional[Any] = Field(default=None, description="Task result")
-    detail: str = Field(default="", description="Task details")
+    detail: Optional[str] = Field(default=None, description="Task details")
+    args: tuple = Field(default_factory=tuple, description="args arguments")
+    kwargs: dict = Field(default_factory=dict, description="kwargs arguments")
     max_retries: int = Field(default=settings.max_retries, lte=10, gte=1)
-    count_retries: int = Field(default=0, description="Count retries")
-    start_time: datetime = Field(default=None, description="Start time")
-    end_time: datetime = Field(default=None, description="End time")
-    created: datetime = Field(default_factory=datetime.utcnow)
+
+    # beanstalkd settings
+    queue_name: str = Field(default="default", description="Queue name")
+    task_priority: int = Field(default=None, description="Queue priority")
+    task_delay: int = Field(default=None, description="Queue delay")
+
+    # meta task
+    start_time: Optional[datetime] = Field(
+        default=None, description="Datetime when task is STARTED"
+    )
+    end_time: Optional[datetime] = Field(
+        default=None,
+        description="Datetime when task is FINISHED, FAIL, or REVOKED",
+    )
+    task_name: str = Field(description="Full path task name")
+    task_location: str = Field(description="Full path task location")
+    created: datetime = Field(
+        default_factory=datetime.utcnow, description="Created"
+    )
     updated: datetime = Field(default=None, description="Updated")
+    count_retries: int = Field(default=0, description="Count retries")
+    supress_exception: bool = Field(
+        default=True, description="Supress exception"
+    )
 
     @abc.abstractmethod
     def save(self):
@@ -75,24 +95,28 @@ class BaseBackend(BaseModel, abc.ABC):
                 self.end_time = datetime.utcnow()
                 self.status = Status.FAIL
             self.save()
-            return True
+            return self.supress_exception
 
     def __call__(self):
         return self.run()
 
-    def run(self, threaded: bool = False):
+    def run(self):
         """
-        Two CMs, first the Lock context and after the Task context.
-
-        If the task is running by another Task object,
-        raises an exception (not seen and cached by the Task context).
-
-        # TODO: Re do this part...
+        run task
         """
 
-        with Lock(name=f"Task-{self.uuid}"), self:
+        with self:
 
-            result = self.smart_stream.result(delayed=delayed)
+            from arend.tasks.registered_tasks import registered_tasks
+
+            # get signature
+            registered = registered_tasks(
+                locations=[settings.task_module_locations]
+            )
+            task = registered[self.task_location]
+
+            # run task
+            self.result = task.run(*self.args, **self.kwargs)
 
             # update finished task
             self.status = Status.FINISHED

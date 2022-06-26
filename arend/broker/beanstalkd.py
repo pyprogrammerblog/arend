@@ -1,6 +1,5 @@
 import logging
 
-from arend.brokers.base import BaseBroker
 from arend.settings import settings
 from pystalkd import Job
 from pystalkd.Beanstalkd import Connection
@@ -8,7 +7,11 @@ from pystalkd.Beanstalkd import Connection
 logger = logging.getLogger(__name__)
 
 
-class BeanstalkdBroker(BaseBroker):
+class BeanstalkdBroker:
+    """
+    Beanstalkd Broker
+    """
+
     def __init__(self, queue_name: str):
         self.queue_name = queue_name
         self.connection = Connection(

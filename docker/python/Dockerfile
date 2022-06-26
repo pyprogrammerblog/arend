@@ -1,6 +1,6 @@
 FROM python:3.10.2
 
-LABEL maintainer="JM Vazquez"
+LABEL maintainer="Jose Maria Vazquez Jimenez"
 
 ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8
 
