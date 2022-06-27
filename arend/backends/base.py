@@ -2,10 +2,12 @@ import abc
 import logging
 import traceback
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any, Optional, Type
 from uuid import UUID, uuid4
 
+from arend.beanstalkd.beanstalkd import BeanstalkdBroker
 from arend.settings import settings
+from arend.tasks.async_task import AsyncTask
 from pydantic import BaseModel, Field
 
 __all__ = ["BaseBackend", "Status"]
@@ -61,19 +63,30 @@ class BaseBackend(BaseModel, abc.ABC):
     )
 
     @abc.abstractmethod
-    def save(self):
-        pass
+    def save(self) -> Type["BaseBackend"]:
+        raise NotImplementedError
 
     @abc.abstractmethod
-    def get(self, uuid: UUID):
-        pass
+    def get(self, uuid: UUID) -> Type["BaseBackend"]:
+        raise NotImplementedError
 
     @abc.abstractmethod
-    def delete(self):
-        pass
+    def delete(self) -> int:
+        raise NotImplementedError
 
     def notify(self, message: str):
         self.detail += f"- {message}\n"
+
+    def send_to_queue(self):
+        with BeanstalkdBroker(queue_name=self.queue_name) as beanstalkd:
+            beanstalkd.put(
+                body=self.uuid,
+                priority=self.task_priority,
+                delay=self.task_delay
+                + self.count_retries * settings.delay_factor,
+            )
+        self.status = Status.PENDING
+        self.save()
 
     def __str__(self):
         return f"Task-{self.uuid}"
@@ -91,6 +104,8 @@ class BaseBackend(BaseModel, abc.ABC):
             if self.count_retries < self.max_retries or settings.max_retries:
                 self.count_retries += 1
                 self.status = Status.RETRY
+                # put in the tube again
+                self.send_to_queue()
             else:
                 self.end_time = datetime.utcnow()
                 self.status = Status.FAIL
@@ -110,10 +125,8 @@ class BaseBackend(BaseModel, abc.ABC):
             from arend.tasks.registered_tasks import registered_tasks
 
             # get signature
-            registered = registered_tasks(
-                locations=[settings.task_module_locations]
-            )
-            task = registered[self.task_location]
+            registered = registered_tasks(locations=settings.task_locations)
+            task: AsyncTask = registered[self.task_location]
 
             # run task
             self.result = task.run(*self.args, **self.kwargs)

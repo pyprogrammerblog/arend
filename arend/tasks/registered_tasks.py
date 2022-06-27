@@ -1,9 +1,10 @@
 import importlib
 import logging
+from functools import lru_cache
 from inspect import getmembers
 from typing import Dict, List
 
-from notifier.arend.tasks.async_task import AsyncTask
+from arend.tasks.async_task import AsyncTask
 
 logger = logging.getLogger(__name__)
 
@@ -14,10 +15,16 @@ def is_async_task(object: object) -> bool:
     return isinstance(object, AsyncTask)
 
 
+@lru_cache
 def registered_tasks(
     locations: List[str], file_name: str = "tasks"
 ) -> Dict[str, AsyncTask]:
-    """"""
+    """
+
+    :param locations:
+    :param file_name:
+    :return:
+    """
     tasks = {}
 
     for location in locations:

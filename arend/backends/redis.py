@@ -28,9 +28,17 @@ class Task(BaseBackend):
         if task:
             return cls(**task)
 
-    def update_one(self, uuid: str, task: "Task"):
-        self.get_redis().hset(uuid, **task.dict())
-        return task
+    def save(self) -> "Task":
+        """
 
-    def delete_one(self, uuid: UUID):
-        self.get_redis().delete(str(uuid))
+        :return:
+        """
+        self.get_redis().hset(str(self.uuid), **self.dict())
+        return self
+
+    def delete(self):
+        """
+
+        :return:
+        """
+        self.get_redis().delete(str(self.uuid))

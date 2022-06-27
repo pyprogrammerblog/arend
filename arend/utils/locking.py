@@ -2,17 +2,12 @@ import logging
 
 import redis
 from arend.settings import settings
+from arend.utils.redis import get_redis
+
+__all__ = ["Lock", "LockingException"]
+
 
 logger = logging.getLogger(__name__)
-
-
-client = redis.Redis(
-    host=settings.redis_host,
-    db=settings.redis_db,
-    password=settings.redis_password,
-    socket_timeout=settings.socket_timeout,
-    socket_connect_timeout=settings.socket_connect_timeout,
-)
 
 
 class LockingException(Exception):
@@ -21,21 +16,21 @@ class LockingException(Exception):
 
 class Lock:
     def __init__(self, name: str, timeout: int = None):
-        """Acquire a lock for an object
-        :param name: a string that uniquely determines the locked object
-        :param timeout: the amount of seconds after a lock will expire
+        """
+        Acquire a lock for an object
         """
         self.name = name
-        self.timeout = timeout or 5 * 60  # 5 min
         self.lock = None
+        self.timeout = timeout or 5 * 60  # 5 min
+        self.client = get_redis(settings=settings)
 
     def flush(self):
-        locks = list(client.scan_iter(self.name))
+        locks = list(self.client.scan_iter(self.name))
         if len(locks) > 0:
-            client.delete(*locks)
+            self.client.delete(*locks)
 
     def acquire(self):
-        lock = client.lock(self.name, timeout=self.timeout, sleep=0)
+        lock = self.client.lock(self.name, timeout=self.timeout, sleep=0)
         if lock.acquire(blocking=False):
             self.lock = lock
             return lock

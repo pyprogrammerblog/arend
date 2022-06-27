@@ -39,7 +39,10 @@ Example
 
 .. code:: python
 
-    >>> from arend.tasks.decorator import arend_task
+    >>> from arend.tasks.decorator import delayed_task
+            >>>
+        >>>
+        >>>
     >>>
 
 

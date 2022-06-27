@@ -19,28 +19,15 @@ class Task(BaseBackend):
     Mongo DB Adapter
     """
 
-    class Meta:
-        db_connection: str = settings.mongo_connection
-        db_name: str = settings.mongo_db
-        db_collection: str
-
     @classmethod
     @contextmanager
     def mongo_collection(cls) -> Collection:
         """
         Yield a connection
         """
-        db_conn = (
-            cls.Meta.db_connection
-            if hasattr(cls.Meta, "db_connection")
-            else Task.Meta.db_connection
-        )
-        db_name = (
-            cls.Meta.db_name
-            if hasattr(cls.Meta, "db_name")
-            else Task.Meta.db_name
-        )
-        db_collection = cls.Meta.db_collection or "default"
+        db_conn = settings.mongo.connection
+        db_name = settings.mongo.db
+        db_collection = settings.mongo.collection
 
         with MongoClient(db_conn, UuidRepresentation="standard") as client:
             db = client.get_database(db_name)
@@ -48,17 +35,20 @@ class Task(BaseBackend):
             yield collection
 
     @classmethod
-    def get(cls, uuid: UUID):
+    def get(cls, uuid: UUID) -> "Task":
         """
-        Get object from DataBase
+        Get
+        :param uuid:
+        :return:
         """
         with cls.mongo_collection() as collection:
             if obj := collection.find_one(filter={"uuid": uuid}):
                 return cls(**obj)
 
-    def save(self):
+    def save(self) -> "Task":
         """
-        Updates object in DataBase
+        Save
+        :return:
         """
         self.updated = datetime.utcnow()
         with self.mongo_collection() as collection:

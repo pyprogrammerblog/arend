@@ -2,7 +2,7 @@ import datetime
 import logging
 from uuid import UUID
 
-from arend.backends.base import QueueTask
+from arend.backends import Task
 from arend.settings import settings
 from fastapi import APIRouter, HTTPException
 from pymongo import DESCENDING, MongoClient
@@ -12,18 +12,18 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/queue-tasks/{uuid}", response_model=QueueTask)
+@router.get("/queue-tasks/{uuid}", response_model=Task)
 def get_task(uuid: UUID) -> dict:
     """
     Retrieve a single Queue Task
     """
-    if not (queue_task := QueueTask.get(uuid=uuid)):
+    if not (queue_task := Task.get(uuid=uuid)):
         raise HTTPException(status_code=404, detail="Not found")
 
     return queue_task
 
 
-@router.get("/queue-tasks/", response_model=QueueTask)
+@router.get("/queue-tasks/", response_model=Task)
 def get_queue_tasks(
     name: str = None,
     enabled: bool = None,
@@ -67,8 +67,8 @@ def get_queue_tasks(
     return {"queue_tasks": queue_tasks, "count": len(queue_tasks)}
 
 
-@router.patch("/queue-tasks/{uuid}", response_model=QueueTask)
-def update_queue_task(uuid: UUID, queue_task: QueueTask) -> QueueTask:
+@router.patch("/queue-tasks/{uuid}", response_model=Task)
+def update_queue_task(uuid: UUID, queue_task: Task) -> Task:
     """
     Update a Queue Task
     """

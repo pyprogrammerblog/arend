@@ -2,7 +2,7 @@ import datetime
 import logging
 from uuid import UUID
 
-from arend.backends.base import Task
+from arend.backends import Task
 from arend.settings import settings
 from fastapi import APIRouter, HTTPException
 from pymongo import DESCENDING, MongoClient

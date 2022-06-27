@@ -17,4 +17,5 @@ repos:
   hooks:
   - id: check-merge-conflict
   - id: check-yaml
+  - id: check-json
   - id: flake8

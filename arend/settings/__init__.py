@@ -1,22 +1,10 @@
-from arend.settings.settings import Settings
-from arend.backends import mongo, redis, sql
+from arend.settings.settings import ArendSettings
 from functools import lru_cache
 
 
 @lru_cache
-def get_settings():
-    return Settings()
+def get_settings() -> ArendSettings:
+    return ArendSettings()
 
 
-settings = Settings()
-
-
-@lru_cache
-def get_backend(backend: str):
-    backends = {
-        "redis": redis.Task,
-        "mongo": mongo.Task,
-        "sql": sql.Task,
-        # to be add more...
-    }
-    return backends.get(backend)
+settings = get_settings()
