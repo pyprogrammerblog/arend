@@ -2,7 +2,7 @@ import logging
 import time
 
 from arend.backends import Task
-from arend.beanstalkd import BeanstalkdBroker
+from arend.broker import BeanstalkdBroker
 from arend.settings import settings
 
 __all__ = ["consumer"]

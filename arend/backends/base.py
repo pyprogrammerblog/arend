@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Any, Optional, Type
 from uuid import UUID, uuid4
 
-from arend.beanstalkd.beanstalkd import BeanstalkdBroker
+from arend.broker.beanstalkd import BeanstalkdBroker
 from arend.settings import settings
 from arend.tasks.async_task import AsyncTask
 from pydantic import BaseModel, Field

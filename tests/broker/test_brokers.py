@@ -1,1 +1,1 @@
-from arend.beanstalkd.beanstalkd import BeanstalkdBroker
+from arend.broker.beanstalkd import BeanstalkdBroker
