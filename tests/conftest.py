@@ -17,7 +17,7 @@ def override_environment_stage():
 
 @pytest.fixture(scope="function")
 def client():
-    from arend.api import arend_router
+    from arend.api.v1.router import arend_router
 
     app = FastAPI(title="Testing App")
     app.include_router(arend_router)  # add router for testing

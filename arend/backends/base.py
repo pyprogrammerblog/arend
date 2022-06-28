@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Any, Optional, Type
 from uuid import UUID, uuid4
 
-from arend.broker.beanstalkd import BeanstalkdBroker
+from arend.broker.beanstalkd import Beanstalkd
 from arend.settings import settings
 from arend.tasks.async_task import AsyncTask
 from pydantic import BaseModel, Field
@@ -36,7 +36,7 @@ class BaseBackend(BaseModel, abc.ABC):
     detail: Optional[str] = Field(default=None, description="Task details")
     args: tuple = Field(default_factory=tuple, description="args arguments")
     kwargs: dict = Field(default_factory=dict, description="kwargs arguments")
-    max_retries: int = Field(default=settings.max_retries, lte=10, gte=1)
+    max_retries: int = Field(default=settings.task_max_retries, lte=10, gte=1)
 
     # beanstalkd settings
     queue_name: str = Field(default="default", description="Queue name")
@@ -78,12 +78,12 @@ class BaseBackend(BaseModel, abc.ABC):
         self.detail += f"- {message}\n"
 
     def send_to_queue(self):
-        with BeanstalkdBroker(queue_name=self.queue_name) as beanstalkd:
+        with Beanstalkd(queue_name=self.queue_name) as beanstalkd:
             beanstalkd.put(
-                body=self.uuid,
+                task_uuid=self.uuid,
                 priority=self.task_priority,
                 delay=self.task_delay
-                + self.count_retries * settings.delay_factor,
+                + self.count_retries * settings.task_delay_factor,
             )
         self.status = Status.PENDING
         self.save()
@@ -101,7 +101,10 @@ class BaseBackend(BaseModel, abc.ABC):
         if exc_type:
             last_trace = "".join(traceback.format_tb(exc_tb)).strip()
             self.detail = f"Failure: {last_trace}\n"
-            if self.count_retries < self.max_retries or settings.max_retries:
+            if (
+                self.count_retries < self.max_retries
+                or settings.task_max_retries
+            ):
                 self.count_retries += 1
                 self.status = Status.RETRY
                 # put in the tube again

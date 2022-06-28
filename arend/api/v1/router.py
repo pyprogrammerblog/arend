@@ -6,8 +6,8 @@ from fastapi import APIRouter
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
-router.prefix = "/v1"
-router.include_router(router=backend, tags=["Backend Tasks"])
-router.include_router(router=broker, tags=["Broker Tasks"])
+arend_router = APIRouter()
+arend_router.prefix = "/v1"
+arend_router.include_router(router=backend, tags=["Backend Arend"])
+arend_router.include_router(router=broker, tags=["Broker Arend"])
 # more routers to be added here...

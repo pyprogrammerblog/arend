@@ -1,11 +1,11 @@
-from pydantic import BaseModel
+from pydantic import BaseSettings
 from typing import Literal
 
 
-class RabbitMQSettings(BaseModel):
+class SQLSettings(BaseSettings):
 
     # mongo backend settings
-    name: Literal["rabbitmq"] = "rabbitmq"
+    backend_type: Literal["sql"] = "sql"
     connection: str = "mongodb://mongo:mongo@mongo:27017"
     max_pool_size: int = 10
     min_pool_size: int = 0
