@@ -11,14 +11,12 @@ __all__ = ["Beanstalkd"]
 
 class Beanstalkd:
     """
-    Beanstalkd Broker. Weird that the class does not implement a context manager...
+    Beanstalkd Broker
     """
 
     def __init__(self, queue_name: str):
         self.queue_name = queue_name
-        self.connection = Connection(
-            host=settings.beanstalkd_host, port=settings.beanstalkd_port
-        )
+        self.connection = Connection(host=settings.host, port=settings.port)
         self.connection.watch(name=self.queue_name)
         self.connection.use(name=self.queue_name)
 

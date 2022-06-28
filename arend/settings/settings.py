@@ -1,9 +1,6 @@
-from typing import Dict, Union
-from pydantic import BaseSettings
-from arend.settings.backends.redis import RedisSettings
-from arend.settings.backends.mongo import MongoSettings
-from arend.settings.backends.sql import SQLSettings
-from arend.settings.backends.rabbitmq import RabbitMQSettings
+from typing import Dict
+from pydantic import BaseSettings, Field
+from arend.backends import Backends
 from arend.settings.broker.beanstalkd import BeanstalkdSettings
 
 
@@ -19,7 +16,7 @@ class ArendSettings(BaseSettings):
     queues: Dict[str, int] = None
 
     # backends
-    backend: Union[MongoSettings, RedisSettings, SQLSettings, RabbitMQSettings]
+    backend: Backends = Field(discriminator="backend_type")
 
     # broker
     broker: BeanstalkdSettings = BeanstalkdSettings()
