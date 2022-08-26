@@ -1,0 +1,61 @@
+version: '3.3'
+services:
+
+  beanstalkd:
+    build:
+      context: beanstalkd
+      dockerfile: Dockerfile
+    command: /usr/bin/beanstalkd -b /var/lib/beanstalkd
+    expose:
+      - "11300"
+
+  rabbitmq:
+    image: rabbitmq:latest
+    container_name: 'rabbitmq'
+    ports:
+      - "5672:5672"
+
+  redis:
+    image: redis:latest
+    container_name: 'redis'
+    command: redis-server --requirepass 'password'
+
+  mongo:
+    image: mongo:latest
+    container_name: 'mongo'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "mongo"
+      MONGO_INITDB_ROOT_PASSWORD: "mongo"
+    ports:
+      - "27017:27017"
+
+  postgres:
+    image: postgres:latest
+    container_name: 'postgres'
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: app
+    depends_on:
+      - beanstalkd
+      - postgres
+      - mongo
+      - redis
+      - rabbitmq
+    environment:
+      - DOCKER=True
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=$PYTHONPATH:/code
+      - POETRY_VIRTUALENVS_IN_PROJECT=true
+      - SHELL=/bin/bash
+    ports:
+      - "8888:8888"  # for jupyter notebooks
+    volumes:
+      - ./:/code
