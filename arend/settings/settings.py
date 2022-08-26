@@ -11,7 +11,7 @@ from pydantic import (
 
 class Settings(BaseSettings):
 
-    # brokers
+    # beanstalkd
     broker: Literal["redis", "beanstalk", "sqs"]
     broker_uri: str
 

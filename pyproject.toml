@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "arend"
 version = "0.1.0"
-description = "Arend"
+description = "A simple producer consumer library for Beanstalkd queue."
 readme = "README.md"
 license = "LICENSE"
 include = ["CHANGELOG.md"]

@@ -1,4 +1,4 @@
-from arend.brokers.base import BaseBroker
+from arend.beanstalkd.base import BaseBroker
 from arend.settings import settings
 from pystalkd.Beanstalkd import Connection
 

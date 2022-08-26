@@ -1,4 +1,4 @@
-from arend.brokers import QueueBroker
+from arend.beanstalkd import QueueBroker
 from arend.settings import settings
 from arend.tube.task import Task
 
