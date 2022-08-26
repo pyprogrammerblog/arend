@@ -70,8 +70,7 @@ class Task(BaseModel):
             broker.add_to_queue(
                 body=self.uuid,
                 priority=self.priority,
-                delay=self.delay
-                + self.count_retries * settings.delay_factor,
+                delay=self.delay + self.count_retries * settings.delay_factor,
                 ttr=DEFAULT_TTR,
             )
         self.status = PENDING
