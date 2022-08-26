@@ -11,11 +11,11 @@ from pydantic import (
 
 class Settings(BaseSettings):
 
-    # beanstalkd
+    # broker
     broker: Literal["redis", "beanstalk", "sqs"]
     broker_uri: str
 
-    # backends
+    # backend
     backend: Literal["redis", "postgres", "ampqn", "beanstalk", "sqs"]
     backend_uri: str
 

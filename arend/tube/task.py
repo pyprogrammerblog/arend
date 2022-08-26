@@ -1,5 +1,5 @@
-from arend.beanstalkd import BeanstalkdBroker
-from arend.beanstalkd import Broker
+from arend.broker import BeanstalkdBroker
+from arend.broker import Broker
 from arend.settings import settings
 from arend.settings.status import FAIL
 from arend.settings.status import FINISHED

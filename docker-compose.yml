@@ -5,7 +5,7 @@ services:
     build:
       context: beanstalkd
       dockerfile: Dockerfile
-    command: /usr/bin/beanstalkd -b /var/lib/beanstalkd
+    command: /usr/bin/broker -b /var/lib/broker
     expose:
       - "11300"
 
