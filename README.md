@@ -1,7 +1,10 @@
  arend
 =============
 
-A simple producer consumer library for Beanstalkd queue.
+A simple producer-consumer library for Beanstalkd queue.
+
+The arend uses Mongo as Backend and Beanstalkd as queue. 
+It also brings a FastApi Router to access via REST your tasks.
 
 
 Basic Usage
