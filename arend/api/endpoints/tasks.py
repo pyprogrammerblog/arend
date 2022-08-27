@@ -68,7 +68,7 @@ def get_tasks(
             .limit(limit=limit)
         )
 
-    return {"tasks": tasks, "count": len(tasks)}
+    return {"utils": tasks, "count": len(tasks)}
 
 
 @arend_router.delete("/task/{uuid}", status_code=204)

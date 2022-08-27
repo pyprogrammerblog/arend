@@ -7,13 +7,7 @@ import redis
 logger = logging.getLogger(__name__)
 
 
-client = redis.Redis(
-    host=settings.redis_host,
-    db=settings.redis_db,
-    password=settings.redis_password,
-    socket_timeout=settings.socket_timeout,
-    socket_connect_timeout=settings.socket_connect_timeout,
-)
+__all__ = ["Lock", "LockingException"]
 
 
 class LockingException(Exception):
@@ -29,14 +23,21 @@ class Lock:
         self.name = name
         self.timeout = timeout or 5 * 60  # 5 min
         self.lock = None
+        self.client = redis.Redis(
+            host=settings.redis_host,
+            db=settings.redis_db,
+            password=settings.redis_password,
+            socket_timeout=settings.socket_timeout,
+            socket_connect_timeout=settings.socket_connect_timeout,
+        )
 
     def flush(self):
-        locks = list(client.scan_iter(self.name))
+        locks = list(self.client.scan_iter(self.name))
         if len(locks) > 0:
-            client.delete(*locks)
+            self.client.delete(*locks)
 
     def acquire(self):
-        lock = client.lock(self.name, timeout=self.timeout, sleep=0)
+        lock = self.client.lock(self.name, timeout=self.timeout, sleep=0)
         if lock.acquire(blocking=False):
             self.lock = lock
             return lock
@@ -61,3 +62,4 @@ class Lock:
 
     def __exit__(self, *args, **kwargs):
         self.release()
+        self.client.close()

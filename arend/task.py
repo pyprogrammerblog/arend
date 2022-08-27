@@ -1,13 +1,16 @@
 from arend.settings import settings
-from arend.tasks.locking import Lock
+from arend.utils.locking import Lock
 from arend.backend.task import Task
-from datetime import timedelta
 from pydantic import BaseModel
 from pystalkd.Beanstalkd import DEFAULT_PRIORITY
 from typing import Callable
+from datetime import timedelta
 from typing import Union
 
+import functools
 import logging
+
+__all__ = ["arend_task", "ArendTask"]
 
 
 logger = logging.getLogger(__name__)
@@ -70,9 +73,42 @@ class ArendTask(BaseModel):
             priority=priority,
             delay=delay,
             exclusive=self.exclusive,
-        ).save()  # set as SCHEDULED (default)
+        ).save()  # Create a SCHEDULED (default) Object
 
-        # broker send to queue
-        task.send_to_queue()  # put into the queue and set as PENDING
+        # put into the queue and set as PENDING
+        task.send_to_queue()
 
         return task  # return a PENDING task
+
+
+def arend_task(
+    queue_name: str = None,
+    queue_priority: int = None,
+    queue_delay: Union[timedelta, int] = None,
+    exclusive: bool = False,
+):
+    """
+    Register functions as async functions
+    Examples:
+
+    @arend_task()
+    def task(kwargs):
+        return "a result"
+    """
+
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper_register():
+            return ArendTask(
+                task_name=func.__name__,
+                task_location=f"{func.__module__}.{func.__name__}",
+                processor=func,
+                queue_name=queue_name,
+                queue_priority=queue_priority,
+                queue_delay=queue_delay,
+                exclusive=exclusive,
+            )
+
+        return wrapper_register()
+
+    return decorator

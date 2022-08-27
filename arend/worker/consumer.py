@@ -1,6 +1,5 @@
-from arend.broker import QueueBroker
-from arend.settings import settings
-from arend.tube.task import Task
+from arend.broker import BeanstalkdBroker
+from arend.task import Task
 
 import logging
 import time
@@ -9,26 +8,23 @@ import time
 logger = logging.getLogger(__name__)
 
 
-def consumer(queue_name: str, timeout: int = 20, testing: bool = False):
+def consumer(
+    queue_name: str,
+    timeout: int = 20,
+    testing: bool = False,
+    sleep_time: int = 1,
+):
     """
     Single consumer.
-
-    :param queue_name:
-    :param timeout:
-    :param testing:
-    :return:
     """
 
-    run = True
+    while True:
 
-    while run:
-
-        with QueueBroker(queue_name=queue_name) as broker:
+        with BeanstalkdBroker(queue_name=queue_name) as broker:
 
             message = broker.reserve(timeout=timeout)
-            if message is None and testing:  # for testing purposes
-                run = False
-                continue
+            if message is None and testing:
+                break
 
             if message:
                 queue_task = Task.get(uuid=message.body)
@@ -37,4 +33,4 @@ def consumer(queue_name: str, timeout: int = 20, testing: bool = False):
 
                 broker.delete(message)
 
-        time.sleep(settings.sleep_time_consumer)
+        time.sleep(sleep_time)

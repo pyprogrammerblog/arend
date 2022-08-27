@@ -92,7 +92,7 @@ class Task(DBAdapter):
             if self.status == [status.REVOKED, status.FAIL, status.FINISHED]:
                 return
 
-            from arend.tasks.registered_tasks import registered_tasks
+            from arend.utils.registered_tasks import registered_tasks
 
             registered = registered_tasks(locations=["notifier"])
             task = registered[self.location]
