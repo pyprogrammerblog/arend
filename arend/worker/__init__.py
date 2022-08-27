@@ -1,10 +1,4 @@
-from arend.worker.worker import pool_processor
-
-import logging
+from arend.worker.consumer import consumer
 
 
-logger = logging.getLogger(__name__)
-
-
-if __name__ == "__main__":
-    pool_processor()
+__all__ = ["consumer"]

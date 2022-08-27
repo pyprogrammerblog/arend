@@ -13,7 +13,7 @@ __all__ = ["consumer"]
 def consumer(
     queue_name: str,
     timeout: int = 20,
-    testing: bool = False,
+    polling: bool = False,
     sleep_time: int = 1,
 ):
     """
@@ -25,7 +25,7 @@ def consumer(
         with BeanstalkdBroker(queue_name=queue_name) as broker:
 
             message = broker.connection.reserve(timeout=timeout)
-            if message is None and testing:
+            if message is None and not polling:
                 break
 
             if message:
