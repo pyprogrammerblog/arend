@@ -11,7 +11,7 @@ __all__ = ["consumer"]
 
 
 def consumer(
-    queue_name: str,
+    queue: str,
     timeout: int = 20,
     polling: bool = False,
     sleep_time: int = 1,
@@ -22,10 +22,11 @@ def consumer(
 
     while True:
 
-        with BeanstalkdBroker(queue_name=queue_name) as broker:
+        with BeanstalkdBroker(queue=queue) as broker:
 
             message = broker.connection.reserve(timeout=timeout)
             if message is None and not polling:
+                # if not polling, consume all messages and break loop
                 break
 
             if message:

@@ -8,14 +8,17 @@ Basic Usage
 --------------
 
 In your code:
-```python
+
+ ```python
 from arend import arend_task
 
-@arend_task(queue_name="my_queue")
-def double(num: int) -> int:
-    return num * 2
 
-double.apply_async()  # create an ArendTask
+ @arend_task(queue="my_queue")
+ def double(num: int) -> int:
+     return num * 2
+
+
+ double.apply_async()  # create an ArendTask
 ```
 
 In your worker:

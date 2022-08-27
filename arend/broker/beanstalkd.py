@@ -10,13 +10,13 @@ logger = logging.getLogger(__name__)
 
 
 class BeanstalkdBroker:
-    def __init__(self, queue_name: str):
-        self.queue_name: str = queue_name
+    def __init__(self, queue: str):
+        self.queue: str = queue
         self.connection: Connection = Connection(
             host=settings.beanstalkd_host, port=settings.beanstalkd_port
         )
-        self.connection.watch(name=queue_name)
-        self.connection.use(name=queue_name)
+        self.connection.watch(name=queue)
+        self.connection.use(name=queue)
 
     def __enter__(self: "BeanstalkdBroker") -> "BeanstalkdBroker":
         return self

@@ -57,7 +57,7 @@ class ArendTask(BaseModel):
         Run task asynchronously.
         """
         # settings
-        queue_name = self.queue_name or queue_name or settings.queue_name
+        queue_name = self.queue_name or queue_name or settings.queue
         delay = delay or self.delay or settings.delay or 0
         priority = (
             priority or self.priority or settings.priority or DEFAULT_PRIORITY
@@ -82,9 +82,9 @@ class ArendTask(BaseModel):
 
 
 def arend_task(
-    queue_name: str = None,
-    queue_priority: int = None,
-    queue_delay: Union[timedelta, int] = None,
+    queue: str = None,
+    priority: int = None,
+    delay: Union[timedelta, int] = None,
     exclusive: bool = False,
 ):
     """
@@ -103,9 +103,9 @@ def arend_task(
                 task_name=func.__name__,
                 task_location=f"{func.__module__}.{func.__name__}",
                 processor=func,
-                queue_name=queue_name,
-                queue_priority=queue_priority,
-                queue_delay=queue_delay,
+                queue_name=queue,
+                queue_priority=priority,
+                queue_delay=delay,
                 exclusive=exclusive,
             )
 
