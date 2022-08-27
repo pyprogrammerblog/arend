@@ -18,7 +18,7 @@ class BeanstalkdBroker:
         self.connection.watch(name=queue_name)
         self.connection.use(name=queue_name)
 
-    def __enter__(self: Connection):
+    def __enter__(self: "BeanstalkdBroker") -> "BeanstalkdBroker":
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):

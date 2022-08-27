@@ -1,11 +1,13 @@
 from arend.broker import BeanstalkdBroker
-from arend.task import Task
-
+from arend.backend.task import Task
+from uuid import UUID
 import logging
 import time
 
 
 logger = logging.getLogger(__name__)
+
+__all__ = ["consumer"]
 
 
 def consumer(
@@ -22,15 +24,15 @@ def consumer(
 
         with BeanstalkdBroker(queue_name=queue_name) as broker:
 
-            message = broker.reserve(timeout=timeout)
+            message = broker.connection.reserve(timeout=timeout)
             if message is None and testing:
                 break
 
             if message:
-                queue_task = Task.get(uuid=message.body)
+                queue_task = Task.get(uuid=UUID(message.body))
                 if queue_task:
                     queue_task.run()  # run sync inside worker
 
-                broker.delete(message)
+                message.delete()
 
         time.sleep(sleep_time)
