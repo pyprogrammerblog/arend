@@ -17,7 +17,7 @@ from arend import arend_task
 def double(num: int) -> int:
     return num * 2
 
-double.apply_async()  # create an ArendTask
+double.apply_async()  # create a task on your Backend and send it to the queue
 ```
 
 In your worker, consume the task:
@@ -25,7 +25,7 @@ In your worker, consume the task:
 from arend import consumer
 
 
-consumer(queue="my_queue", polling=True)  # consume arend tasks from queue
+consumer(queue="my_queue", polling=True)  # consume tasks from queue
 ```
 
 In your FastAPI app:
