@@ -2,8 +2,9 @@ version: '3.3'
 services:
 
   beanstalkd:
+    container_name: 'beanstalkd'
     build:
-      context: beanstalkd
+      context: docker/beanstalkd
       dockerfile: Dockerfile
     command: /usr/bin/broker -b /var/lib/broker
     expose:
@@ -40,9 +41,9 @@ services:
 
   app:
     build:
-      context: .
+      context: docker/arend
       dockerfile: Dockerfile
-    container_name: app
+    container_name: 'app'
     depends_on:
       - beanstalkd
       - postgres

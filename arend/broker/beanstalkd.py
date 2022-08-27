@@ -1,36 +1,25 @@
-from arend.broker.base import BaseBroker
 from arend.settings import settings
 from pystalkd.Beanstalkd import Connection
 
 import logging
-import pystalkd
-import uuid
+
+__all__ = ["BeanstalkdBroker"]
 
 
 logger = logging.getLogger(__name__)
 
 
-class BeanstalkdBroker(BaseBroker):
+class BeanstalkdBroker:
     def __init__(self, queue_name: str):
-        self.queue_name = queue_name
-        self.connection = Connection(
+        self.queue_name: str = queue_name
+        self.connection: Connection = Connection(
             host=settings.beanstalkd_host, port=settings.beanstalkd_port
         )
         self.connection.watch(name=queue_name)
         self.connection.use(name=queue_name)
 
-    def __enter__(self):
+    def __enter__(self: Connection):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.connection.close()
-
-    def add_to_queue(self, task_uuid: uuid.UUID):
-        self.connection.put(body=str(task_uuid))
-
-    def reserve(self, timeout: int = None) -> pystalkd.Job:
-        job = self.connection.reserve(timeout=timeout)
-        return job
-
-    def delete(self, job: pystalkd.Job):
-        job.delete()

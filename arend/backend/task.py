@@ -1,18 +1,12 @@
 from arend.broker import BeanstalkdBroker
-from arend.broker import Broker
+from arend.backend.adapters.mongo import DBAdapter
 from arend.settings import settings
-from arend.settings.status import FAIL
-from arend.settings.status import FINISHED
-from arend.settings.status import PENDING
-from arend.settings.status import RETRY
-from arend.settings.status import REVOKED
-from arend.settings.status import SCHEDULED
-from arend.settings.status import STARTED
+from arend.settings import status
 from datetime import datetime
 from pydantic import BaseModel
 from pydantic import Field
 from typing import Any
-from typing import Optional
+from typing import Optional, List
 from uuid import uuid4
 
 import logging
@@ -25,11 +19,13 @@ logger = logging.getLogger(__name__)
 DEFAULT_TTR = 30 * 60  # 30 min
 
 
-class Task(BaseModel):
+class Task(DBAdapter):
     uuid: str = Field(default_factory=lambda: str(uuid4()), description="ID")
     name: str = Field(description="Full path task name.")
     location: str = Field(description="Full path task location.")
-    status: str = Field(default=SCHEDULED, description="Current status.")
+    status: str = Field(
+        default=status.SCHEDULED, description="Current status."
+    )
     result: Optional[Any] = Field(default=None, description="Task result.")
     detail: str = Field(default="", description="Task details.")
     start_time: Optional[datetime] = Field(
@@ -51,37 +47,23 @@ class Task(BaseModel):
     exclusive: bool = False
     count_retries: int = 0
 
-    @classmethod
-    def get(cls, uuid: str):
-        with Backend() as backend:
-            queue_task = backend.find_one(uuid=uuid)
-
-        if queue_task:
-            return Task(**queue_task)
-
-    def save(self):
-        with Backend() as backend:
-            self.updated = datetime.utcnow()
-            backend.update_one(task_uuid=self.uuid, to_update=self.dict())
-        return self
-
     def send_to_queue(self):
-        with Broker(queue_name=self.queue_name) as broker:
-            broker.add_to_queue(
+        with BeanstalkdBroker(queue_name=self.queue_name) as broker:
+            broker.connection.put(
                 body=self.uuid,
                 priority=self.priority,
                 delay=self.delay + self.count_retries * settings.delay_factor,
                 ttr=DEFAULT_TTR,
             )
-        self.status = PENDING
-        self.save()
+            self.status = status.PENDING
+            self.save()
 
     def notify(self, message: str):
         self.detail += f"- {message}\n"
 
     def __enter__(self):
         self.start_time = datetime.utcnow()
-        self.status = STARTED
+        self.status = status.STARTED
         self.save()
         return self
 
@@ -91,13 +73,13 @@ class Task(BaseModel):
             self.detail = f"Failure: {last_trace}\n"
             if self.count_retries < settings.task_max_retries:
                 self.count_retries += 1
-                self.status = RETRY
+                self.status = status.RETRY
                 self.save()
                 # put in the tube again
                 self.send_to_queue()
             else:
                 self.end_time = datetime.utcnow()
-                self.status = FAIL
+                self.status = status.FAIL
             self.save()
             return True
 
@@ -107,7 +89,7 @@ class Task(BaseModel):
     def run(self):
 
         with self:
-            if self.status == [REVOKED, FAIL, FINISHED]:
+            if self.status == [status.REVOKED, status.FAIL, status.FINISHED]:
                 return
 
             from arend.tasks.registered_tasks import registered_tasks
@@ -118,7 +100,12 @@ class Task(BaseModel):
             result = task.run(*self.args, **self.kwargs)
 
             # update finished task
-            self.status = FINISHED
+            self.status = status.FINISHED
             self.end_time = datetime.utcnow()
             self.result = result
             self.save()
+
+
+class Tasks(BaseModel):
+    tasks: List[Task] = Field(default_factory=list)
+    count: int = Field(default=0)

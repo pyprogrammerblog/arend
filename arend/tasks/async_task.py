@@ -1,26 +1,29 @@
 from arend.settings import settings
 from arend.tasks.locking import Lock
-from arend.tube.task import Task
+from arend.backend.task import Task
 from datetime import timedelta
 from pydantic import BaseModel
 from pystalkd.Beanstalkd import DEFAULT_PRIORITY
 from typing import Callable
 from typing import Union
 
-import datetime
 import logging
 
 
 logger = logging.getLogger(__name__)
 
 
-class AsyncTask(BaseModel):
+class ArendTask(BaseModel):
+    """
+    ArendTask
+    """
+
     task_name: str
     task_location: str
     processor: Callable
     queue_name: str = None
-    task_priority: int = None
-    task_delay: Union[timedelta, int] = None
+    priority: int = None
+    delay: Union[timedelta, int] = None
     exclusive: bool = False
 
     def __call__(self, *args, **kwargs):
@@ -42,8 +45,8 @@ class AsyncTask(BaseModel):
     def apply_async(
         self,
         queue_name: str = None,
-        task_priority: str = None,
-        task_delay: Union[timedelta, int] = 0,
+        priority: str = None,
+        delay: Union[timedelta, int] = 0,
         args: tuple = None,
         kwargs: dict = None,
     ) -> Task:
@@ -52,25 +55,21 @@ class AsyncTask(BaseModel):
         """
         # settings
         queue_name = self.queue_name or queue_name or settings.queue_name
-        task_delay = task_delay or self.task_delay or settings.task_delay or 0
-        task_priority = (
-            task_priority
-            or self.task_priority
-            or settings.task_priority
-            or DEFAULT_PRIORITY
+        delay = delay or self.delay or settings.delay or 0
+        priority = (
+            priority or self.priority or settings.priority or DEFAULT_PRIORITY
         )
 
         # insert in backend
         task = Task(
             task_name=self.task_name,
             task_location=self.task_location,
-            queue_name=queue_name,
-            task_priority=task_priority,
-            task_delay=task_delay,
             args=args or (),
             kwargs=kwargs or {},
+            queue_name=queue_name,
+            priority=priority,
+            delay=delay,
             exclusive=self.exclusive,
-            created=datetime.datetime.utcnow(),
         ).save()  # set as SCHEDULED (default)
 
         # broker send to queue

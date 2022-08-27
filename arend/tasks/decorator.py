@@ -1,4 +1,4 @@
-from arend.tasks.async_task import AsyncTask
+from arend.tasks.async_task import ArendTask
 from datetime import timedelta
 from typing import Union
 
@@ -27,7 +27,7 @@ def arend_task(
     def decorator(func):
         @functools.wraps(func)
         def wrapper_register():
-            return AsyncTask(
+            return ArendTask(
                 task_name=func.__name__,
                 task_location=f"{func.__module__}.{func.__name__}",
                 processor=func,

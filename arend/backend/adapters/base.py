@@ -1,7 +1,3 @@
-# from arend.settings import settings
-# from pymongo import MongoClient
-# from pymongo.collection import Collection
-
 import logging
 
 
