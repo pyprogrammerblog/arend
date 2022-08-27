@@ -34,6 +34,7 @@ from arend import arend_router
 from fastapi import FastAPI
 
 
+...
 app = FastAPI()
 app.include_router(router=arend_router)  # expose tasks objects
 ...
