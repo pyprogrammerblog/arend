@@ -3,11 +3,13 @@ from arend.backend.adapters.mongo import DBAdapter
 from arend.settings import settings
 from arend.settings import status
 from datetime import datetime
-from pydantic import BaseModel
+from arend.utils.locking import Lock
+from pydantic import BaseModel, FilePath
 from pydantic import Field
 from typing import Any
-from typing import Optional, List
-from uuid import uuid4
+from typing import Optional
+from uuid import uuid4, UUID
+from typing import List
 
 import logging
 import traceback
@@ -20,9 +22,9 @@ DEFAULT_TTR = 30 * 60  # 30 min
 
 
 class Task(DBAdapter):
-    uuid: str = Field(default_factory=lambda: str(uuid4()), description="ID")
+    uuid: UUID = Field(default_factory=uuid4, description="UUID")
     name: str = Field(description="Full path task name.")
-    location: str = Field(description="Full path task location.")
+    location: FilePath = Field(description="Full path task location.")
     status: str = Field(
         default=status.SCHEDULED, description="Current status."
     )
@@ -38,7 +40,7 @@ class Task(DBAdapter):
     args: tuple = Field(default_factory=tuple, description="Task args.")
     kwargs: dict = Field(default_factory=dict, description="Task arguments.")
 
-    queue_name: str = Field(description="Queue name.")
+    queue: str = Field(description="Queue name.")
     priority: int = Field(description="Queue priority.")
     delay: int = Field(description="Queue delay.")
 
@@ -48,9 +50,9 @@ class Task(DBAdapter):
     count_retries: int = 0
 
     def send_to_queue(self):
-        with BeanstalkdBroker(queue_name=self.queue_name) as broker:
+        with BeanstalkdBroker(queue=self.queue) as broker:
             broker.connection.put(
-                body=self.uuid,
+                body=str(self.uuid),
                 priority=self.priority,
                 delay=self.delay + self.count_retries * settings.delay_factor,
                 ttr=DEFAULT_TTR,
@@ -88,13 +90,13 @@ class Task(DBAdapter):
 
     def run(self):
 
-        with self:
+        with self, Lock(str(self.uuid)):
             if self.status == [status.REVOKED, status.FAIL, status.FINISHED]:
                 return
 
             from arend.utils.registered_tasks import registered_tasks
 
-            registered = registered_tasks(locations=["notifier"])
+            registered = registered_tasks(locations=settings.task_locations)
             task = registered[self.location]
 
             result = task.run(*self.args, **self.kwargs)

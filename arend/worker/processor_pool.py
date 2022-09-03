@@ -17,7 +17,7 @@ def pool_processor(args):
     :param args: str.
 
     Example:
-    ```python3 /path/to/pool_processor --queue_1=2 --queue_2=3```
+    ```python3 pool_processor --queue_1=2 --queue_2=3```
     """
 
     # parse arguments

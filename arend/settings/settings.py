@@ -12,12 +12,8 @@ from pydantic import (
 class Settings(BaseSettings):
 
     # broker
-    broker: Literal["redis", "beanstalk", "sqs"]
-    broker_uri: str
 
     # backend
-    backend: Literal["redis", "postgres", "ampqn", "beanstalk", "sqs"]
-    backend_uri: str
 
     # general settings
     max_retries: int = 10
