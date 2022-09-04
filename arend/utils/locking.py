@@ -1,7 +1,7 @@
 from arend.settings import settings
 
 import logging
-import redis
+ import redis
 
 logger = logging.getLogger(__name__)
 

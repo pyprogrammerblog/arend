@@ -6,7 +6,7 @@ from pymongo import DESCENDING
 from pymongo import MongoClient
 from arend.settings import settings
 from fastapi import APIRouter, HTTPException
-from arend.tube.task import Task, Tasks
+from arend.backend.task import Task, Tasks
 
 __all__ = ["arend_router"]
 
@@ -30,9 +30,9 @@ def get_task(uuid: UUID) -> dict:
 @arend_router.get("/task/", response_model=Tasks)
 def get_tasks(
     status: str = None,
-    smart_stream_uuid: UUID = None,
-    start_datetime: datetime.datetime = None,
-    end_datetime: datetime.datetime = None,
+    uuid: UUID = None,
+    start: datetime.datetime = None,
+    end: datetime.datetime = None,
     page: int = None,
     paginate_by: int = None,
 ) -> dict:
@@ -43,12 +43,12 @@ def get_tasks(
 
     if status is not None:
         query["status"] = status
-    if smart_stream_uuid is not None:
-        query["smart_stream.uuid"] = smart_stream_uuid
-    if start_datetime is not None:
-        query["created"] = {"$gte": start_datetime}
-    if end_datetime is not None:
-        query["created"] = {"$lt": end_datetime}
+    if uuid is not None:
+        query["uuid"] = uuid
+    if start is not None:
+        query["start"] = {"$gte": start}
+    if end is not None:
+        query["end"] = {"$lt": end}
 
     skip, limit = 0, 0
     if page:

@@ -23,26 +23,21 @@ DEFAULT_TTR = 30 * 60  # 30 min
 
 class Task(DBAdapter):
     uuid: UUID = Field(default_factory=uuid4, description="UUID")
-    name: str = Field(description="Full path task name.")
-    location: FilePath = Field(description="Full path task location.")
-    status: str = Field(
-        default=status.SCHEDULED, description="Current status."
+    name: str = Field(description="Full path task name")
+    location: FilePath = Field(description="Full path task location")
+    status: str = Field(default=status.SCHEDULED, description="Status")
+    result: Optional[Any] = Field(default=None, description="Task result")
+    detail: Optional[str] = Field(description="Task details")
+    start: Optional[datetime] = Field(None, description="Task started")
+    end: Optional[datetime] = Field(
+        None, description="FINISHED, FAIL, or REVOKED"
     )
-    result: Optional[Any] = Field(default=None, description="Task result.")
-    detail: str = Field(default="", description="Task details.")
-    start_time: Optional[datetime] = Field(
-        default=None, description="Datetime when task is STARTED."
-    )
-    end_time: Optional[datetime] = Field(
-        default=None,
-        description="Datetime when task is FINISHED, FAIL, or REVOKED.",
-    )
-    args: tuple = Field(default_factory=tuple, description="Task args.")
-    kwargs: dict = Field(default_factory=dict, description="Task arguments.")
+    args: tuple = Field(default_factory=tuple, description="Task args")
+    kwargs: dict = Field(default_factory=dict, description="Task arguments")
 
-    queue: str = Field(description="Queue name.")
-    priority: int = Field(description="Queue priority.")
-    delay: int = Field(description="Queue delay.")
+    queue: str = Field(description="Queue name")
+    priority: int = Field(description="Queue priority")
+    delay: int = Field(description="Queue delay")
 
     created: datetime = Field(default_factory=datetime.utcnow)
     updated: datetime = None
