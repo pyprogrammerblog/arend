@@ -17,7 +17,15 @@ def consumer(
     sleep_time: int = 1,
 ):
     """
-    Single consumer.
+
+    Args:
+        queue:
+        timeout:
+        long_polling:
+        sleep_time:
+
+    Returns:
+
     """
 
     while True:
