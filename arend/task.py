@@ -26,7 +26,7 @@ class ArendTask(BaseModel):
     task_name: str
     task_location: str
     processor: Callable
-    queue_name: str = None
+    queue: str = None
     priority: int = None
     delay: Union[timedelta, int] = None
     exclusive: bool = False
@@ -49,7 +49,7 @@ class ArendTask(BaseModel):
 
     def apply_async(
         self,
-        queue_name: str = None,
+        queue: str = None,
         priority: int = None,
         delay: Union[timedelta, int] = 0,
         args: tuple = None,
@@ -62,28 +62,27 @@ class ArendTask(BaseModel):
         Run task asynchronously.
         """
 
-        # settings
-        delay = delay or self.delay
-        priority = priority or self.priority
-        queue_name = self.queue_name or queue_name
-
+        # backend settings
         settings = settings or Settings()
         Task = settings.backend()
 
+        # create and save a task in your backend
         task = Task(
             task_name=self.task_name,
             task_location=self.task_location,
-            args=args or (),
-            kwargs=kwargs or {},
-            queue_name=queue_name,
-            priority=priority,
-            delay=delay,
+            queue=self.queue or queue,
+            args=args or Task.args,
+            kwargs=kwargs or Task.kwargs,
+            priority=priority or self.priority or Task.priority,
+            delay=delay or self.delay or Task.delay,
             exclusive=self.exclusive,
-        ).save()  # Create a SCHEDULED (default) Object
+        ).save()
 
-        task.send_to_queue()  # put into the queue and set as PENDING
+        # put into the queue and set as PENDING
+        task.send_to_queue()
 
-        return task  # return a PENDING task
+        # return a PENDING task
+        return task
 
 
 def arend_task(
