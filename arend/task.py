@@ -76,9 +76,9 @@ class ArendTask(BaseModel):
             priority=priority or self.priority or Task.priority,
             delay=delay or self.delay or Task.delay,
             exclusive=self.exclusive,
-        ).save()
+        ).save()  # default to SCHEDULED
 
-        # put into the queue and set as PENDING
+        # put into the queue and set task as PENDING
         task.send_to_queue()
 
         # return a PENDING task
