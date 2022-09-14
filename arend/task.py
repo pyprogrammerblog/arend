@@ -61,7 +61,6 @@ class ArendTask(BaseModel):
         """
         Run task asynchronously.
         """
-
         # get settings for your backend
         settings = settings or Settings()
         Task = settings.backend()
