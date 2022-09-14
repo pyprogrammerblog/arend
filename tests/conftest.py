@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from pymongo.mongo_client import MongoClient
 from arend.settings import settings
 from arend.utils.locking import Lock
-from arend.settings import status
+from arend.backends import status
 from arend.api import arend_router
 from arend.worker.consumer import consumer
 from sqlalchemy_utils import drop_database, database_exists, create_database

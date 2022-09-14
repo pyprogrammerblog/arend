@@ -1,5 +1,9 @@
 from arend.broker import BeanstalkdBroker
-from arend.backend.task import Task
+from arend.backends.mongo import MongoSettings
+from arend.backends.sql import SQLSettings
+from arend.backends.redis import RedisSettings
+from arend.backends import Settings
+from typing import Union
 from uuid import UUID
 import logging
 import time
@@ -15,24 +19,20 @@ def consumer(
     timeout: int = 20,
     long_polling: bool = False,
     sleep_time: int = 1,
+    settings: Union[MongoSettings, RedisSettings, SQLSettings, None] = None,
 ):
     """
-
-    Args:
-        queue:
-        timeout:
-        long_polling:
-        sleep_time:
-
-    Returns:
-
+    Consumer
     """
+
+    settings = settings or Settings()
+    Task = settings.backend()
 
     while True:
 
         with BeanstalkdBroker(queue=queue) as broker:
 
-            message = broker.connection.reserve(timeout=timeout)
+            message = broker.reserve(timeout=timeout)
             if message is None and not long_polling:
                 # if not long_polling, consume all messages and break loop
                 break

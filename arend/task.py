@@ -1,8 +1,10 @@
 from arend.settings import settings
 from arend.utils.locking import Lock
-from arend.backend.task import Task
 from pydantic import BaseModel
-from pystalkd.Beanstalkd import DEFAULT_PRIORITY
+from arend.backends.mongo import MongoSettings, MongoTask
+from arend.backends.sql import SQLSettings, SQLTask
+from arend.backends.redis import RedisSettings, RedisTask
+from arend.backends import Settings
 from typing import Callable
 from datetime import timedelta
 from typing import Union
@@ -48,22 +50,26 @@ class ArendTask(BaseModel):
     def apply_async(
         self,
         queue_name: str = None,
-        priority: str = None,
+        priority: int = None,
         delay: Union[timedelta, int] = 0,
         args: tuple = None,
         kwargs: dict = None,
-    ) -> Task:
+        settings: Union[
+            MongoSettings, RedisSettings, SQLSettings, None
+        ] = None,
+    ) -> Union[MongoTask, RedisTask, SQLTask]:
         """
         Run task asynchronously.
         """
-        # settings
-        queue_name = self.queue_name or queue_name or settings.queue
-        delay = delay or self.delay or settings.delay or 0
-        priority = (
-            priority or self.priority or settings.priority or DEFAULT_PRIORITY
-        )
 
-        # insert in backend
+        # settings
+        delay = delay or self.delay
+        priority = priority or self.priority
+        queue_name = self.queue_name or queue_name
+
+        settings = settings or Settings()
+        Task = settings.backend()
+
         task = Task(
             task_name=self.task_name,
             task_location=self.task_location,
@@ -75,8 +81,7 @@ class ArendTask(BaseModel):
             exclusive=self.exclusive,
         ).save()  # Create a SCHEDULED (default) Object
 
-        # put into the queue and set as PENDING
-        task.send_to_queue()
+        task.send_to_queue()  # put into the queue and set as PENDING
 
         return task  # return a PENDING task
 
@@ -86,6 +91,7 @@ def arend_task(
     priority: int = None,
     delay: Union[timedelta, int] = None,
     exclusive: bool = False,
+    settings: Union[MongoSettings, RedisSettings, SQLSettings, None] = None,
 ):
     """
     Register functions as async functions
@@ -107,6 +113,7 @@ def arend_task(
                 queue_priority=priority,
                 queue_delay=delay,
                 exclusive=exclusive,
+                settings=settings,
             )
 
         return wrapper_register()

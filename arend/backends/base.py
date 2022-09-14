@@ -1,7 +1,6 @@
 from arend.broker import BeanstalkdBroker
-from arend.backend.adapters.mongo import DBAdapter
 from arend.settings import settings
-from arend.settings import status
+from arend.backends import status
 from datetime import datetime
 from arend.utils.locking import Lock
 from pydantic import BaseModel, FilePath
@@ -21,36 +20,50 @@ logger = logging.getLogger(__name__)
 DEFAULT_TTR = 30 * 60  # 30 min
 
 
-class Task(DBAdapter):
+class BaseTask(BaseModel):
     uuid: UUID = Field(default_factory=uuid4, description="UUID")
     name: str = Field(description="Full path task name")
+    description: str = Field(default=None, description="Description")
     location: FilePath = Field(description="Full path task location")
+
     status: str = Field(default=status.SCHEDULED, description="Status")
     result: Optional[Any] = Field(default=None, description="Task result")
     detail: Optional[str] = Field(description="Task details")
-    start: Optional[datetime] = Field(None, description="Task started")
-    end: Optional[datetime] = Field(
-        None, description="FINISHED, FAIL, or REVOKED"
+    start_time: Optional[datetime] = Field(
+        default=None, description="Task is STARTED"
     )
+    end_time: Optional[datetime] = Field(
+        default=None, description="Task is FINISHED, FAIL, or REVOKED"
+    )
+
     args: tuple = Field(default_factory=tuple, description="Task args")
     kwargs: dict = Field(default_factory=dict, description="Task arguments")
 
-    queue: str = Field(description="Queue name")
-    priority: int = Field(description="Queue priority")
-    delay: int = Field(description="Queue delay")
+    queue: str = Field(..., description="Queue name")
+    delay: int = Field(default=0, description="Queue delay")
+    priority: int = Field(default=1, description="Queue priority")
 
     created: datetime = Field(default_factory=datetime.utcnow)
     updated: datetime = None
     exclusive: bool = False
     count_retries: int = 0
 
+    def save(self):
+        return NotImplementedError
+
+    def delete(self):
+        return NotImplementedError
+
+    @classmethod
+    def get(cls, uuid: UUID):
+        return NotImplementedError
+
     def send_to_queue(self):
         with BeanstalkdBroker(queue=self.queue) as broker:
-            broker.connection.put(
+            broker.put(
                 body=str(self.uuid),
                 priority=self.priority,
                 delay=self.delay + self.count_retries * settings.delay_factor,
-                ttr=DEFAULT_TTR,
             )
             self.status = status.PENDING
             self.save()
@@ -72,8 +85,7 @@ class Task(DBAdapter):
                 self.count_retries += 1
                 self.status = status.RETRY
                 self.save()
-                # put in the tube again
-                self.send_to_queue()
+                self.send_to_queue()  # put in the tube again
             else:
                 self.end_time = datetime.utcnow()
                 self.status = status.FAIL
@@ -103,6 +115,6 @@ class Task(DBAdapter):
             self.save()
 
 
-class Tasks(BaseModel):
-    tasks: List[Task] = Field(default_factory=list)
+class BaseTasks(BaseModel):
+    tasks: List[BaseTask] = Field(default_factory=list)
     count: int = Field(default=0)

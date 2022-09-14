@@ -1,10 +1,7 @@
  arend
 =============
 
-A simple producer-consumer library for Beanstalkd queue.
-
-The arend uses Mongo as Backend and Beanstalkd as queue. 
-It also brings a FastApi Router to access via REST your tasks.
+A simple producer-consumer library for the Beanstalkd queue.
 
 Installation
 --------------
@@ -31,17 +28,48 @@ In your worker, consume the task:
 ```python
 from arend import consumer
 
-consumer(queue="my_queue", polling=True)  # consume tasks from queue
+consumer(queue="my_queue", long_polling=True)  # consume tasks from queue
 ```
 
-In your FastAPI app:
-```python
-from arend import arend_router
-from fastapi import FastAPI
+Backends
+----------
+There are three backends available to save our tasks.
 
-app = FastAPI()
-app.include_router(router=arend_router)  # expose tasks objects
-...
+1. Mongo.
+2. Redis.
+3. SQL.
+
+There are some possible ways to pass backend settings. This is the priority.
+
+1. **Passing settings as parameters**.
+
+```python
+from arend import arend_task
+from arend.backends import MongoSettings
+
+settings = MongoSettings(
+    mongo_connection="mongodb://user:pass@mongo:27017",
+    mongo_db="db",
+    mongo_collection="logs",
+)
+
+@arend_task(queue="my_queue", settings=settings)
+def double(num: int) -> int:
+    return num * 2
+```
+
+```python
+from arend import consumer
+
+consumer(queue="my_queue", long_polling=True, settings=settings)
+```
+
+2. **Environment variables**.
+
+The `AREND__` prefix indicates that it belongs to Arend.
+```shell
+export AREND__SQL_DSN=postgresql+psycopg2://user:pass@postgres:5432/db
+export AREND__SQL_TABLE=logs
 ```
 
 Documentation
