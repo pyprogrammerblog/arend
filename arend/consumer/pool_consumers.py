@@ -1,23 +1,26 @@
-from arend.worker.consumer import consumer
+from arend.consumer.consumer import consumer
 from multiprocessing import Pool
 
 import click
 import logging
 
 
+__all__ = ["pool_consumers"]
+
+
 logger = logging.getLogger(__name__)
 
 
-@click.command(name="Start Processor")
+@click.command(name="Start Pool of Consumers")
 @click.argument("args", nargs=-1)
-def pool_processor(args):
+def pool_consumers(args):
     """
-    Pool processor.
+    Pool Consumers.
 
     :param args: str.
 
     Example:
-    ```python3 pool_processor --queue_1=2 --queue_2=3```
+    ```python3 pool_processor --queue_1=4 --queue_2=2```
     """
 
     # parse arguments

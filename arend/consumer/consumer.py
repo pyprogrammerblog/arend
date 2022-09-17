@@ -8,17 +8,17 @@ from uuid import UUID
 import logging
 import time
 
+__all__ = ["consumer"]
+
 
 logger = logging.getLogger(__name__)
-
-__all__ = ["consumer"]
 
 
 def consumer(
     queue: str,
     timeout: int = 20,
     long_polling: bool = False,
-    sleep_time: int = 1,
+    sleep_time: float = 1,
     settings: Union[MongoSettings, RedisSettings, SQLSettings, None] = None,
 ):
     """

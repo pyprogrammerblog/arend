@@ -1,15 +1,11 @@
-from datetime import datetime
-
+import redis
 import pytest
-from fastapi.testclient import TestClient
+import os
 from pymongo.mongo_client import MongoClient
 from arend.settings import settings
 from arend.utils.locking import Lock
-from arend.backends import status
-from arend.api import arend_router
-from arend.worker.consumer import consumer
+from arend.consumer.consumer import consumer
 from sqlalchemy_utils import drop_database, database_exists, create_database
-from arend.backend.task import Task
 
 
 @pytest.fixture(scope="function")
@@ -19,19 +15,8 @@ def lock_flush():
     Lock("piet").flush()
 
 
-@pytest.fixture(scope="function")
-def client():
-    from fastapi import FastAPI
-
-    app = FastAPI(debug=True)
-    app.add_route(route=arend_router, path="api/")
-
-    with TestClient(app) as test_client:
-        yield test_client
-
-
 @pytest.fixture
-def drop_mongo():
+def mongo_backend():
     """
     Clean mongo DB before and after
     """
@@ -43,7 +28,7 @@ def drop_mongo():
 
 
 @pytest.fixture
-def drop_sql(sql_dsn):
+def sql_backend():
     """
     Clean mongo DB before and after
     """
@@ -55,6 +40,14 @@ def drop_sql(sql_dsn):
     drop_database(url=sql_uri)
 
 
+@pytest.fixture(scope="function")
+def redis_backend():
+    with redis.Redis(host="redis", password="pass", port=6379, db=1) as r:
+        r.flushdb()
+        yield r
+        r.flushdb()
+
+
 @pytest.fixture
 def exhaust_queue():
     consumer(queue="test", timeout=0, long_polling=False)
@@ -62,23 +55,40 @@ def exhaust_queue():
     consumer(queue="test", timeout=0, long_polling=False)
 
 
-@pytest.fixture
-def tasks():
-    """
-    Tasks
-    """
-    task_1 = Task(
-        status=status.FINISHED,
-        start=datetime(year=2020, month=1, day=1, hour=1, minute=1),
-        end=datetime(year=2020, month=1, day=1, hour=1, minute=30),
-    ).save()
-    task_2 = Task(
-        status=status.FAIL,
-        start=datetime(year=2020, month=1, day=3, hour=1, minute=1),
-        end=datetime(year=2020, month=1, day=3, hour=1, minute=30),
-    ).save()
+@pytest.fixture(scope="function")
+def env_vars_redis():
+    os.environ["AREND__REDIS_HOST"] = "redis"
+    os.environ["AREND__REDIS_DB"] = "1"
+    os.environ["AREND__REDIS_PASSWORD"] = "pass"
+    try:
+        yield
+    finally:
+        del os.environ["AREND__REDIS_HOST"]
+        del os.environ["AREND__REDIS_DB"]
+        del os.environ["AREND__REDIS_PASSWORD"]
 
-    yield task_1, task_2
 
-    task_1.delete()
-    task_2.delete()
+@pytest.fixture(scope="function")
+def env_vars_mongo():
+    os.environ["AREND__MONGO_CONNECTION"] = "mongodb://user:pass@mongo:27017"
+    os.environ["AREND__MONGO_DB"] = "db"
+    os.environ["AREND__MONGO_COLLECTION"] = "logs"
+    try:
+        yield
+    finally:
+        del os.environ["AREND__MONGO_CONNECTION"]
+        del os.environ["AREND__MONGO_DB"]
+        del os.environ["AREND__MONGO_COLLECTION"]
+
+
+@pytest.fixture(scope="function")
+def env_vars_sql():
+    os.environ[
+        "AREND__SQL_DSN"
+    ] = "postgresql+psycopg2://user:pass@postgres:5432/db"
+    os.environ["AREND__SQL_TABLE"] = "logs"
+    try:
+        yield
+    finally:
+        del os.environ["AREND__SQL_DSN"]
+        del os.environ["AREND__SQL_TABLE"]
