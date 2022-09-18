@@ -8,7 +8,7 @@ from arend.backends.redis import RedisSettings, RedisTask
 def test_create_settings_passing_params_redis():
 
     redis_settings = RedisSettings(redis_password="pass", redis_host="redis")
-    settings = Settings(pu=redis_settings)
+    settings = Settings(arend=redis_settings)
     klass = settings.backend()
     assert issubclass(klass, RedisTask)
     assert klass.Meta.redis_password == RedisTask.Meta.redis_password == "pass"
@@ -21,7 +21,7 @@ def test_create_settings_passing_params_mongo():
         mongo_db="db",
         mongo_collection="logs",
     )
-    settings = Settings(pu=mongo_settings)
+    settings = Settings(arend=mongo_settings)
     klass = settings.backend()
     assert issubclass(klass, MongoTask)
     assert (
@@ -37,7 +37,7 @@ def test_create_settings_passing_params_sql():
         sql_dsn="postgresql+psycopg2://user:pass@postgres:5432/db",
         sql_table="logs",
     )
-    settings = Settings(pu=sql_settings)
+    settings = Settings(arend=sql_settings)
     klass = settings.backend()
     assert issubclass(klass, SQLTask)
     assert (

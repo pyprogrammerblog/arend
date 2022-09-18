@@ -1,43 +1,33 @@
 import redis
 import pytest
 import os
+from arend.task import arend_task
 from pymongo.mongo_client import MongoClient
-from arend.settings import settings
-from arend.utils.locking import Lock
 from arend.consumer.consumer import consumer
-from sqlalchemy_utils import drop_database, database_exists, create_database
+from sqlalchemy_utils import drop_database
+from sqlalchemy_utils import database_exists
+from sqlalchemy_utils import create_database
+from sqlmodel import create_engine, Session
+from arend.backends.sql import SQLTask
+
+
+# @pytest.fixture(scope="function")
+# def lock_flush():
+#     Lock("piet").flush()
+#     yield
+#     Lock("piet").flush()
 
 
 @pytest.fixture(scope="function")
-def lock_flush():
-    Lock("piet").flush()
-    yield
-    Lock("piet").flush()
-
-
-@pytest.fixture
 def mongo_backend():
-    """
-    Clean mongo DB before and after
-    """
-    mongo_uri = ""
-    with MongoClient(mongo_uri) as client:
-        client.drop_database(settings.mongo_db)
-        yield
-        client.drop_database(settings.mongo_db)
-
-
-@pytest.fixture
-def sql_backend():
-    """
-    Clean mongo DB before and after
-    """
-    sql_uri = ""
-    if database_exists(url=sql_uri):
-        drop_database(url=sql_uri)
-    create_database(url=sql_uri)
-    yield
-    drop_database(url=sql_uri)
+    with MongoClient(
+        "mongodb://user:pass@mongo:27017", UuidRepresentation="standard"
+    ) as client:
+        client.drop_database("db")
+        db = client.get_database("db")
+        collection = db.get_collection("logs")
+        yield collection
+        client.drop_database("db")
 
 
 @pytest.fixture(scope="function")
@@ -48,7 +38,23 @@ def redis_backend():
         r.flushdb()
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
+def sql_backend():
+    postgres_uri = "postgresql+psycopg2://user:pass@postgres:5432/db"
+    if database_exists(postgres_uri):
+        drop_database(postgres_uri)
+    create_database(postgres_uri)
+
+    engine = create_engine(url=postgres_uri)
+    SQLTask.metadata.create_all(engine)
+
+    with Session(engine) as session:
+        yield session
+
+    drop_database(postgres_uri)
+
+
+@pytest.fixture(scope="function")
 def exhaust_queue():
     consumer(queue="test", timeout=0, long_polling=False)
     yield
@@ -92,3 +98,19 @@ def env_vars_sql():
     finally:
         del os.environ["AREND__SQL_DSN"]
         del os.environ["AREND__SQL_TABLE"]
+
+
+@arend_task(queue="test")
+def task_capitalize(name: str):
+    """
+    Example task for testing
+    """
+    return name.capitalize()
+
+
+@arend_task(queue="test")
+def task_count(name: str, to_count: str):
+    """
+    Example task for testing
+    """
+    return name.count(x=to_count)

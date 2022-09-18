@@ -11,7 +11,7 @@ def test_create_settings_passing_params_mongo(mongo_backend):
         mongo_collection="logs",
     )
     Task = mongo_settings.backend()
-    task: MongoTask = Task(task_name="My task")
+    task: MongoTask = Task(name="My task", queue="test", location="location")
 
     assert 0 == mongo_backend.count_documents(filter={})
 
@@ -30,14 +30,14 @@ def test_create_settings_passing_params_mongo(mongo_backend):
 def test_create_settings_env_vars_mongo(mongo_backend, env_vars_mongo):
 
     settings = Settings()
-    MongoTask = settings.backend()
-    task = MongoTask(task_name="My task")
+    Task = settings.backend()
+    task = Task(name="My task", queue="test", location="location")
 
     assert 0 == mongo_backend.count_documents(filter={})
 
     task.description = "A description"
     task = task.save()
-    task = MongoTask.get(uuid=task.uuid)
+    task = Task.get(uuid=task.uuid)
 
     assert task.description == "A description"
     assert isinstance(task.uuid, uuid.UUID)

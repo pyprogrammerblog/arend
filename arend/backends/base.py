@@ -3,9 +3,8 @@ from arend.settings import settings
 from arend.backends import status
 from datetime import datetime
 from arend.utils.locking import Lock
-from pydantic import BaseModel, FilePath
+from pydantic import BaseModel
 from pydantic import Field
-from typing import Any
 from typing import Optional
 from uuid import uuid4, UUID
 from typing import List
@@ -22,12 +21,12 @@ DEFAULT_TTR = 30 * 60  # 30 min
 
 class BaseTask(BaseModel):
     uuid: UUID = Field(default_factory=uuid4, description="UUID")
-    name: str = Field(description="Full path task name")
+    name: str = Field(..., description="Full path task name")
     description: str = Field(default=None, description="Description")
-    location: FilePath = Field(description="Full path task location")
+    location: str = Field(..., description="Full path task location")
 
     status: str = Field(default=status.SCHEDULED, description="Status")
-    result: Optional[Any] = Field(default=None, description="Task result")
+    result: Optional[str] = Field(default=None, description="Task result")
     detail: Optional[str] = Field(description="Task details")
     start_time: Optional[datetime] = Field(
         default=None, description="Task is STARTED"

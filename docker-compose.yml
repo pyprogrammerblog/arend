@@ -10,32 +10,26 @@ services:
 #    expose:
 #      - "11300"
 
-  rabbitmq:
-    image: rabbitmq:latest
-    container_name: 'rabbitmq'
-    ports:
-      - "5672:5672"
-
   redis:
-    image: redis:latest
-    container_name: 'redis'
-    command: redis-server --requirepass 'password'
+    image: redis:4.0.9-alpine
+    command: redis-server --requirepass 'pass'
+    ports:
+      - "6379:6379"
 
   mongo:
     image: mongo:latest
-    container_name: 'mongo'
     environment:
-      MONGO_INITDB_ROOT_USERNAME: "mongo"
-      MONGO_INITDB_ROOT_PASSWORD: "mongo"
+      - MONGO_INITDB_ROOT_USERNAME=user
+      - MONGO_INITDB_ROOT_PASSWORD=pass
     ports:
       - "27017:27017"
 
   postgres:
     image: postgres:latest
-    container_name: 'postgres'
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      POSTGRES_DB: db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
     ports:
       - "5432:5432"
 
@@ -43,13 +37,12 @@ services:
     build:
       context: docker/arend
       dockerfile: Dockerfile
-    container_name: 'app'
+    container_name: 'arend'
     depends_on:
 #      - beanstalkd
       - postgres
       - mongo
       - redis
-      - rabbitmq
     environment:
       - DOCKER=True
       - PYTHONUNBUFFERED=1

@@ -11,7 +11,7 @@ def test_create_settings_passing_params_sql(sql_backend):
         sql_table="logs",
     )
     Task = sql_settings.backend()
-    task: SQLTask = Task(task_name="My task")
+    task: SQLTask = Task(name="My task", queue="test", location="location")
 
     assert not sql_backend.exec(
         select(Task).where(Task.uuid == task.uuid)
@@ -34,7 +34,7 @@ def test_create_settings_env_vars_sql(sql_backend, env_vars_sql):
 
     settings = Settings()
     Task = settings.backend()
-    log: SQLTask = Task(task_name="My task")
+    log: SQLTask = Task(name="My task", queue="test", location="location")
 
     assert not sql_backend.exec(
         select(Task).where(Task.uuid == log.uuid)
