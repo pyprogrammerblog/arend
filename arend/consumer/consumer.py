@@ -38,9 +38,9 @@ def consumer(
                 break
 
             if message:
-                queue_task = Task.get(uuid=UUID(message.body))
-                if queue_task:
-                    queue_task.run()  # run task here
+                task = Task.get(uuid=UUID(message.body))
+                if task:
+                    task.run()  # run task here
 
                 message.delete()
 
