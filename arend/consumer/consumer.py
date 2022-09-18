@@ -17,8 +17,8 @@ logger = logging.getLogger(__name__)
 def consumer(
     queue: str,
     timeout: int = 20,
-    long_polling: bool = False,
     sleep_time: float = 1,
+    long_polling: bool = False,
     settings: Union[MongoSettings, RedisSettings, SQLSettings, None] = None,
 ):
     """
