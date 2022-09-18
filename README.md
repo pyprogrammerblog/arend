@@ -28,7 +28,8 @@ settings = MongoSettings(
 def double(num: int) -> int:
     return num * 2
 
-double.apply_async()  # create a task and send it to the queue
+# create a task and send it to the queue
+double.apply_async()
 ```
 
 In your worker, consume the task:
