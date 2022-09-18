@@ -16,8 +16,15 @@ Basic Usage
 In your code:
  ```python
 from arend import arend_task
+from arend.backends.mongo import MongoSettings
 
-@arend_task(queue="my_queue")
+settings = MongoSettings(
+    mongo_db="db",
+    mongo_collection="logs",
+    mongo_connection="mongodb://user:pass@mongo:27017",
+)
+
+@arend_task(queue="my_queue", settings=settings)
 def double(num: int) -> int:
     return num * 2
 
@@ -27,8 +34,16 @@ double.apply_async()  # create a task and send it to the queue
 In your worker, consume the task:
 ```python
 from arend.consumer import consumer
+from arend.backends.mongo import MongoSettings
 
-consumer(queue="my_queue", long_polling=True)  # consume tasks from queue
+settings = MongoSettings(
+    mongo_connection="mongodb://user:pass@mongo:27017",
+    mongo_db="db",
+    mongo_collection="logs",
+)
+
+# consume tasks from queue
+consumer(queue="my_queue", long_polling=True, settings=settings)
 ```
 
 Backends
