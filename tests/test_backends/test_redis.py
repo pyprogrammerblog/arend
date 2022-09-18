@@ -1,0 +1,43 @@
+import uuid
+from arend.backends import Settings
+from arend.backends.redis import RedisTask, RedisSettings
+
+
+def test_create_settings_passing_params_redis(redis_backend):
+
+    redis_settings = RedisSettings(redis_host="redis", redis_password="pass")
+    Task = redis_settings.backend()
+    task: RedisTask = Task(task_name="My task")
+
+    assert not redis_backend.get(str(task.uuid))
+
+    task.description = "A description"
+    task = task.save()
+    task = Task.get(uuid=task.uuid)
+
+    assert task.description == "A description"
+    assert isinstance(task.uuid, uuid.UUID)
+    assert redis_backend.get(str(task.uuid))
+    assert 1 == task.delete()
+    assert not redis_backend.get(str(task.uuid))
+    assert 0 == task.delete()
+
+
+def test_create_settings_env_vars_redis(redis_backend, env_vars_redis):
+
+    settings = Settings()
+    Task = settings.backend()
+    task: RedisTask = Task(task_name="My task")
+
+    assert not redis_backend.get(str(task.uuid))
+
+    task.description = "A description"
+    task = task.save()
+    task = Task.get(uuid=task.uuid)
+
+    assert task.description == "A description"
+    assert isinstance(task.uuid, uuid.UUID)
+    assert redis_backend.get(str(task.uuid))
+    assert 1 == task.delete()
+    assert not redis_backend.get(str(task.uuid))
+    assert 0 == task.delete()
