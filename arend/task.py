@@ -23,26 +23,27 @@ class ArendTask(BaseModel):
     ArendTask
     """
 
-    task_name: str
-    task_location: str
+    name: str
+    location: str
     processor: Callable
     queue: str = None
     priority: int = None
     delay: Union[timedelta, int] = None
     exclusive: bool = False
+    settings: Union[MongoSettings, RedisSettings, SQLSettings, None] = None
 
     def __call__(self, *args, **kwargs):
         return self.run(*args, **kwargs)
 
     def __repr__(self):
-        return f"<{self.__class__.__name__} at {self.task_location}>"
+        return f"<{self.__class__.__name__} at {self.location}>"
 
     def run(self, *args, **kwargs):
         """
         Run the task immediately.
         """
         if self.exclusive:
-            with Lock(name=f"{settings.env}.{self.task_location}"):
+            with Lock(name=f"{settings.env}.{self.location}"):
                 return self.processor(*args, **kwargs)
         else:
             return self.processor(*args, **kwargs)
@@ -56,7 +57,7 @@ class ArendTask(BaseModel):
         kwargs: dict = None,
         settings: Union[
             MongoSettings, RedisSettings, SQLSettings, None
-        ] = None,
+        ] = settings,
     ) -> Union[MongoTask, RedisTask, SQLTask]:
         """
         Run task asynchronously.
@@ -67,8 +68,8 @@ class ArendTask(BaseModel):
 
         # create and save a task in your backend
         task = Task(
-            task_name=self.task_name,
-            task_location=self.task_location,
+            name=self.name,
+            location=self.location,
             queue=self.queue or queue,
             args=args or Task.args,
             kwargs=kwargs or Task.kwargs,
@@ -104,12 +105,12 @@ def arend_task(
         @functools.wraps(func)
         def wrapper_register():
             return ArendTask(
-                task_name=func.__name__,
-                task_location=f"{func.__module__}.{func.__name__}",
+                name=func.__name__,
+                location=func.__module__,
                 processor=func,
-                queue_name=queue,
-                queue_priority=priority,
-                queue_delay=delay,
+                queue=queue,
+                priority=priority,
+                delay=delay,
                 exclusive=exclusive,
                 settings=settings,
             )

@@ -101,6 +101,7 @@ class BaseTask(BaseModel):
     def run(self):
         """
         Run task. Internally it will:
+
         - Get signature
         - Run signature with args and kwargs
         - Update result
@@ -114,10 +115,6 @@ class BaseTask(BaseModel):
     def get_task_signature(self) -> ArendTask:
         """
         Get task signature.
-
-        1. It loads the module where is located the task.
-        2. Get ArendTasks signatures from the module.
-        3. Return the specific task signature
 
         Returns: ArendTask. Returns an Arend Task signature.
         """

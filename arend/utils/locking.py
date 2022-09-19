@@ -1,5 +1,3 @@
-from arend.settings import settings
-
 import logging
 import redis  # type: ignore
 
@@ -23,11 +21,9 @@ class Lock:
         self.timeout = timeout or 5 * 60  # 5 min
         self.lock = None
         self.client = redis.Redis(
-            host=settings.redis_host,
-            db=settings.redis_db,
-            password=settings.redis_password,
-            socket_timeout=settings.socket_timeout,
-            socket_connect_timeout=settings.socket_connect_timeout,
+            host="settings.redis_host",
+            db=1,
+            password="settings.redis_password",
         )
 
     def flush(self):

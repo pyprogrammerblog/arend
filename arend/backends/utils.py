@@ -25,6 +25,6 @@ def registered_tasks(
         full_location = f"{location}.{file_name}"
         module = importlib.import_module(full_location)
         members = dict(getmembers(module, is_arend_task))
-        tasks.update({v.task_location: v for k, v in members.items()})
+        tasks.update({v.location: v for k, v in members.items()})
 
     return tasks
