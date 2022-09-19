@@ -1,35 +1,31 @@
 from arend.broker import BeanstalkdBroker
-from arend.settings import settings
 from arend.backends import status
-from arend.task import ArendTask
 from datetime import datetime
 from inspect import getmembers
-from typing import Dict
-from pathlib import Path
-from arend.utils.locking import Lock
 from pydantic import BaseModel
 from pydantic import Field
+from typing import List
 from typing import Optional
 from uuid import uuid4, UUID
-from typing import List
+from typing import TYPE_CHECKING
 
 import importlib
 import logging
 import traceback
 
 
+if TYPE_CHECKING:
+    from arend.task import ArendTask
+
+
 logger = logging.getLogger(__name__)
-
-
-DEFAULT_TTR = 30 * 60  # 30 min
 
 
 class BaseTask(BaseModel):
     uuid: UUID = Field(default_factory=uuid4, description="UUID")
     name: str = Field(..., description="Full path task name")
     description: str = Field(default=None, description="Description")
-    location: str = Field(..., description="Path location for task")
-    file_name: str = Field(default="tasks", description="Task file name")
+    location: str = Field(default="tasks", description="Module location")
 
     status: str = Field(default=status.SCHEDULED, description="Status")
     result: Optional[str] = Field(default=None, description="Task result")
@@ -68,7 +64,7 @@ class BaseTask(BaseModel):
             broker.put(
                 body=str(self.uuid),
                 priority=self.priority,
-                delay=self.delay + self.count_retries * settings.delay_factor,
+                delay=self.delay + self.count_retries * 1,
             )
             self.status = status.PENDING
             self.save()
@@ -77,6 +73,9 @@ class BaseTask(BaseModel):
         self.detail += f"- {message}\n"
 
     def __enter__(self):
+        if self.status == [status.REVOKED, status.FAIL, status.FINISHED]:
+            return
+
         self.start_time = datetime.utcnow()
         self.status = status.STARTED
         self.save()
@@ -86,61 +85,43 @@ class BaseTask(BaseModel):
         if exc_type:
             last_trace = "".join(traceback.format_tb(exc_tb)).strip()
             self.detail = f"Failure: {last_trace}\n"
-            if self.count_retries < settings.task_max_retries:
+            if self.count_retries < 3:
                 self.count_retries += 1
                 self.status = status.RETRY
-                self.save()
-                self.send_to_queue()  # put in the tube again
+                self.send_to_queue()  # put it in the tube again
             else:
                 self.end_time = datetime.utcnow()
                 self.status = status.FAIL
-            self.save()
-            return True
+        else:
+            self.status = status.FINISHED
+            self.end_time = datetime.utcnow()
+        self.save()
+        return True
 
     def __call__(self):
         return self.run()
 
     def run(self):
-
-        with self, Lock(str(self.uuid)):
-            if self.status == [status.REVOKED, status.FAIL, status.FINISHED]:
-                return
-
-            from arend.utils.registered_tasks import registered_tasks
-
-            registered = registered_tasks(locations=settings.task_locations)
-            task: ArendTask = registered[Path(self.location)]
-
+        """
+        Run task
+        """
+        with self:
+            # get task and run it
+            task = self.get_task_signature()
             result = task.run(*self.args, **self.kwargs)
-
-            # update finished task
-            self.status = status.FINISHED
-            self.end_time = datetime.utcnow()
+            # update result
             self.result = result
-            self.save()
 
     def is_arend_task(self, obj: ArendTask) -> bool:
-        """
-
-        Args:
-            obj:
-
-        Returns:
-
-        """
+        """ """
         return isinstance(obj, ArendTask)
 
-    def registered_tasks(self) -> Dict[Path, ArendTask]:
-        """
-
-        Returns:
-
-        """
-        full_location = f"{self.location}.{self.file_name}"
-        module = importlib.import_module(full_location)
+    def get_task_signature(self) -> ArendTask:
+        """ """
+        module = importlib.import_module(self.location)
         members = dict(getmembers(module, self.is_arend_task))
-        tasks = {Path(v.task_location): v for k, v in members.items()}
-        return tasks
+        task = members[self.name]
+        return task
 
 
 class BaseTasks(BaseModel):
