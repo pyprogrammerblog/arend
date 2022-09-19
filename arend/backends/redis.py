@@ -117,6 +117,15 @@ class RedisTask(BaseTask):
             return r.delete(str(self.uuid))
 
 
+class RedisLogs(BaseModel):
+    """
+    Defines the RedisLogs collection
+    """
+
+    tasks: List[RedisTask] = Field(default_factory=list, description="Logs")
+    count: int = Field(default=0, description="Count")
+
+
 class RedisSettings(BaseModel):
     """
     Redis Settings. Defines settings for Redis Backend
@@ -153,12 +162,3 @@ class RedisSettings(BaseModel):
         RedisTask.Meta.redis_password = self.redis_password
         RedisTask.Meta.redis_extras = self.redis_extras
         return RedisTask
-
-
-class RedisLogs(BaseModel):
-    """
-    Defines the RedisLogs collection
-    """
-
-    tasks: List[RedisTask] = Field(default_factory=list, description="Logs")
-    count: int = Field(default=0, description="Count")

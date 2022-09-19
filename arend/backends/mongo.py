@@ -117,6 +117,15 @@ class MongoTask(BaseTask):
             return deleted.deleted_count
 
 
+class MongoTasks(BaseModel):
+    """
+    Defines the MongoTasks collection
+    """
+
+    tasks: List[MongoTask] = Field(default_factory=list, description="Tasks")
+    count: int = Field(default=0, description="Count")
+
+
 class MongoSettings(BaseModel):
     """
     Mongo Settings. Defines settings for Mongo Backend
@@ -148,12 +157,3 @@ class MongoSettings(BaseModel):
         MongoTask.Meta.mongo_db = self.mongo_db
         MongoTask.Meta.mongo_collection = self.mongo_collection
         return MongoTask
-
-
-class MongoTasks(BaseModel):
-    """
-    Defines the MongoTasks collection
-    """
-
-    tasks: List[MongoTask] = Field(default_factory=list, description="Tasks")
-    count: int = Field(default=0, description="Count")

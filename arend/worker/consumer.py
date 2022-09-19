@@ -17,12 +17,32 @@ logger = logging.getLogger(__name__)
 def consumer(
     queue: str,
     timeout: int = 20,
-    sleep_time: float = 1,
+    sleep_time: float = 0.1,
     long_polling: bool = False,
     settings: Union[MongoSettings, RedisSettings, SQLSettings, None] = None,
 ):
     """
-    Consumer
+    Consumer. Consume messages from the queue.
+
+    Args:
+        queue: str. Queue name.
+        timeout: int. Polling timeout.
+        sleep_time: float. Sleeping time between polling cycles.
+        long_polling: bool. Break the loop if no more messages.
+        settings: MongoSettings, RedisSettings, SQLSettings, None.
+            Backend settings. If no settings are passed, the consumer
+            will try to get them from env variables.
+
+    Usage:
+        >>> from arend.worker.consumer import consumer
+        >>> from arend.backends.mongo import MongoSettings
+        >>>
+        >>> settings = MongoSettings(
+        >>>     mongo_connection="mongodb://user:pass@mongo:27017",
+        >>>     mongo_db="db",
+        >>>     mongo_collection="logs",
+        >>> )
+        >>> consumer(queue="my_queue", long_polling=True, settings=settings)
     """
 
     settings = settings or Settings()

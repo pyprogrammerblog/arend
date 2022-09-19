@@ -34,7 +34,7 @@ double.apply_async()
 
 In your worker, consume the task:
 ```python
-from arend.consumer import consumer
+from arend.worker.consumer import consumer
 from arend.backends.mongo import MongoSettings
 
 settings = MongoSettings(

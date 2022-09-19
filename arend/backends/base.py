@@ -1,7 +1,11 @@
 from arend.broker import BeanstalkdBroker
 from arend.settings import settings
 from arend.backends import status
+from arend.task import ArendTask
 from datetime import datetime
+from inspect import getmembers
+from typing import Dict
+from pathlib import Path
 from arend.utils.locking import Lock
 from pydantic import BaseModel
 from pydantic import Field
@@ -9,6 +13,7 @@ from typing import Optional
 from uuid import uuid4, UUID
 from typing import List
 
+import importlib
 import logging
 import traceback
 
@@ -23,7 +28,8 @@ class BaseTask(BaseModel):
     uuid: UUID = Field(default_factory=uuid4, description="UUID")
     name: str = Field(..., description="Full path task name")
     description: str = Field(default=None, description="Description")
-    location: str = Field(..., description="Full path task location")
+    location: str = Field(..., description="Path location for task")
+    file_name: str = Field(default="tasks", description="Task file name")
 
     status: str = Field(default=status.SCHEDULED, description="Status")
     result: Optional[str] = Field(default=None, description="Task result")
@@ -103,7 +109,7 @@ class BaseTask(BaseModel):
             from arend.utils.registered_tasks import registered_tasks
 
             registered = registered_tasks(locations=settings.task_locations)
-            task = registered[self.location]
+            task: ArendTask = registered[Path(self.location)]
 
             result = task.run(*self.args, **self.kwargs)
 
@@ -112,6 +118,29 @@ class BaseTask(BaseModel):
             self.end_time = datetime.utcnow()
             self.result = result
             self.save()
+
+    def is_arend_task(self, obj: ArendTask) -> bool:
+        """
+
+        Args:
+            obj:
+
+        Returns:
+
+        """
+        return isinstance(obj, ArendTask)
+
+    def registered_tasks(self) -> Dict[Path, ArendTask]:
+        """
+
+        Returns:
+
+        """
+        full_location = f"{self.location}.{self.file_name}"
+        module = importlib.import_module(full_location)
+        members = dict(getmembers(module, self.is_arend_task))
+        tasks = {Path(v.task_location): v for k, v in members.items()}
+        return tasks
 
 
 class BaseTasks(BaseModel):

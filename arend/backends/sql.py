@@ -118,6 +118,15 @@ class SQLTask(BaseTask, SQLModel, table=True):  # type: ignore
             return 0
 
 
+class SQLTasks(BaseModel):
+    """
+    Defines the SQL Tasks collection
+    """
+
+    tasks: List[SQLTask] = Field(default_factory=list, description="Logs")
+    count: int = Field(default=0, description="Count")
+
+
 class SQLSettings(BaseModel):
     """
     SQL Settings. Returns a SQLLog class and set SQL backend settings
@@ -135,24 +144,11 @@ class SQLSettings(BaseModel):
     """
 
     sql_dsn: str = Field(..., description="SQLAlchemy dsn connection")
-    sql_table: str = Field(
-        default="progress_updater_logs", description="Table name"
-    )
-    sql_extras: Dict = Field(
-        default_factory=dict, description="SQLAlchemy extras"
-    )
+    sql_table: str = Field(default="arend_tasks", description="Table name")
+    sql_extras: Dict = Field(default_factory=dict, description="Extras")
 
     def backend(self):
         SQLTask.Meta.sql_dsn = self.sql_dsn
         SQLTask.Meta.sql_extras = self.sql_extras
         SQLTask.__tablename__ = self.sql_table
         return SQLTask
-
-
-class SQLTasks(BaseModel):
-    """
-    Defines the SQL Tasks collection
-    """
-
-    tasks: List[SQLTask] = Field(default_factory=list, description="Logs")
-    count: int = Field(default=0, description="Count")
