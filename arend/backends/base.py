@@ -45,9 +45,9 @@ class BaseTask(BaseModel):
     priority: int = Field(default=1, description="Queue priority")
 
     created: datetime = Field(default_factory=datetime.utcnow)
-    updated: datetime = None
-    exclusive: bool = False
-    count_retries: int = 0
+    updated: datetime = Field(default=None)
+    exclusive: bool = Field(default=False)
+    count_retries: int = Field(default=0)
 
     def save(self):
         return NotImplementedError
@@ -68,9 +68,6 @@ class BaseTask(BaseModel):
             )
             self.status = status.PENDING
             self.save()
-
-    def notify(self, message: str):
-        self.detail += f"- {message}\n"
 
     def __enter__(self):
         if self.status == [status.REVOKED, status.FAIL, status.FINISHED]:
@@ -103,24 +100,30 @@ class BaseTask(BaseModel):
 
     def run(self):
         """
-        Run task
+        Run task. Internally it will:
+        - Get signature
+        - Run signature with args and kwargs
+        - Update result
         """
         with self:
-            # get task and run it
+            # get task, run it and update result
             task = self.get_task_signature()
             result = task.run(*self.args, **self.kwargs)
-            # update result
             self.result = result
 
-    def is_arend_task(self, obj: ArendTask) -> bool:
-        """ """
-        return isinstance(obj, ArendTask)
-
     def get_task_signature(self) -> ArendTask:
-        """ """
+        """
+        Get task signature.
+
+        1. It loads the module where is located the task.
+        2. Get ArendTasks signatures from the module.
+        3. Return the specific task signature
+
+        Returns: ArendTask. Returns an Arend Task signature.
+        """
         module = importlib.import_module(self.location)
-        members = dict(getmembers(module, self.is_arend_task))
-        task = members[self.name]
+        tasks = dict(getmembers(module, lambda x: isinstance(x, ArendTask)))
+        task = tasks[self.name]
         return task
 
 
