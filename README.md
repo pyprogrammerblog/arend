@@ -1,5 +1,5 @@
- arend
-=============
+Arend
+========
 
 A simple producer-consumer library for the Beanstalkd queue.
 

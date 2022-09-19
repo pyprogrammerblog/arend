@@ -1,10 +1,10 @@
 from arend.settings import settings
 from arend.utils.locking import Lock
-from pydantic import BaseModel
 from arend.backends.mongo import MongoSettings, MongoTask
 from arend.backends.sql import SQLSettings, SQLTask
 from arend.backends.redis import RedisSettings, RedisTask
 from arend.backends import Settings
+from pydantic import BaseModel
 from typing import Callable
 from datetime import timedelta
 from typing import Union

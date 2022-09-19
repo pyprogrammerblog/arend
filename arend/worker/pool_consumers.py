@@ -1,4 +1,4 @@
-from arend.consumer.consumer import consumer
+from arend.worker.consumer import consumer
 from multiprocessing import Pool
 
 import click
