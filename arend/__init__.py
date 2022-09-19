@@ -1,4 +1,4 @@
-from arend.task import ArendTask, arend_task
+from arend.arend import ArendTask, arend_task
 from arend.worker.consumer import consumer
 from arend.worker.pool_consumers import pool_consumers
 

@@ -1,7 +1,7 @@
 import redis
 import pytest
 import os
-from arend.task import arend_task
+from arend.arend import arend_task
 from pymongo.mongo_client import MongoClient
 from arend.consumer.consumer import consumer
 from sqlalchemy_utils import drop_database

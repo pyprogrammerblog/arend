@@ -15,7 +15,7 @@ import traceback
 
 
 if TYPE_CHECKING:
-    from arend.task import ArendTask
+    from arend.arend import ArendTask
 
 
 logger = logging.getLogger(__name__)

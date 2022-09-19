@@ -1,5 +1,5 @@
 from inspect import getmembers
-from arend.task import ArendTask
+from arend.arend import ArendTask
 from typing import Dict
 from typing import List
 import importlib
