@@ -1,14 +1,14 @@
 version: '3.3'
 services:
 
-#  beanstalkd:
-#    container_name: 'beanstalkd'
-#    build:
-#      context: docker/beanstalkd
-#      dockerfile: Dockerfile
-#    command: /usr/bin/broker -b /var/lib/broker
-#    expose:
-#      - "11300"
+  beanstalkd:
+    container_name: 'beanstalkd'
+    build:
+      context: docker/beanstalkd
+      dockerfile: Dockerfile
+    command: /usr/bin/broker -b /var/lib/broker
+    expose:
+      - "11300"
 
   redis:
     image: redis:4.0.9-alpine
@@ -37,9 +37,8 @@ services:
     build:
       context: docker/arend
       dockerfile: Dockerfile
-    container_name: 'arend'
     depends_on:
-#      - beanstalkd
+      - beanstalkd
       - postgres
       - mongo
       - redis
