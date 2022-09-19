@@ -42,10 +42,10 @@ class ArendTask(BaseModel):
         """
         Run the task immediately.
         """
-        if self.exclusive:
-            with Lock(name=f"{settings.env}.{self.location}"):
-                return self.processor(*args, **kwargs)
-        else:
+        if not self.exclusive:
+            return self.processor(*args, **kwargs)
+
+        with Lock(name=f"{settings.env}.{self.location}"):
             return self.processor(*args, **kwargs)
 
     def apply_async(
