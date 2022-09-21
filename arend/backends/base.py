@@ -73,14 +73,11 @@ class BaseTask(BaseModel):
         return NotImplementedError
 
     def send_to_queue(self):
-        settings = self.Meta.settings.beanstalkd
-
-        with BeanstalkdConnection(queue=self.queue, settings=settings) as conn:
-            conn.put(
-                body=str(self.uuid),
-                priority=self.priority,
-                delay=self.delay + self.count_retries * 1,
-            )
+        with BeanstalkdConnection(
+            queue=self.queue, settings=self.Meta.settings.beanstalkd
+        ) as conn:
+            delay = self.delay + self.count_retries * 1
+            conn.put(body=str(self.uuid), priority=self.priority, delay=delay)
             self.status = Status.PENDING
             self.save()
 
