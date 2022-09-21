@@ -28,6 +28,14 @@ class ArendSettings(BaseModel):
     task_delay: int = None
     task_delay_factor: int = 10
 
+    def get_backend(self) -> Type[Union[MongoTask, RedisTask, SQLTask]]:
+        """
+        Return a Task with configuration already set
+        """
+        Task = self.backend.get_backend()
+        Task.Meta.settings = self
+        return Task
+
 
 class Settings(BaseSettings):
     """
@@ -76,11 +84,3 @@ class Settings(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
         env_nested_delimiter = "__"
-
-    def backend(self) -> Type[Union[MongoTask, RedisTask, SQLTask]]:
-        """
-        Return a Task with configuration already set
-        """
-        Task = self.arend.backend.get_backend()
-        Task.Meta.settings = self.arend
-        return Task

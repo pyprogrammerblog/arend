@@ -35,9 +35,9 @@ def consumer(
         >>> consumer(queue="my_queue")
     """
 
-    settings = settings or Settings()
+    settings = settings or Settings().arend
     beanstalkd = settings.arend.beanstalkd
-    Task = settings.backend()
+    Task = settings.get_backend()
 
     while True:
 

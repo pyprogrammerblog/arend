@@ -76,8 +76,11 @@ class BaseTask(BaseModel):
         with BeanstalkdConnection(
             queue=self.queue, settings=self.Meta.settings.beanstalkd
         ) as conn:
-            delay = self.delay + self.count_retries * 1
-            conn.put(body=str(self.uuid), priority=self.priority, delay=delay)
+            conn.put(
+                body=str(self.uuid),
+                priority=self.priority,
+                delay=self.delay + self.count_retries * 1,
+            )
             self.status = Status.PENDING
             self.save()
 

@@ -1,7 +1,7 @@
 from arend.backends.mongo import MongoSettings, MongoTask
 from arend.backends.sql import SQLSettings, SQLTask
 from arend.backends.redis import RedisSettings, RedisTask
-from arend.settings import Settings
+from arend.settings import ArendSettings, Settings
 from pydantic import BaseModel
 from typing import Callable
 from datetime import timedelta
@@ -27,7 +27,6 @@ class ArendTask(BaseModel):
     queue: str = None
     priority: int = None
     delay: Union[timedelta, int] = None
-    exclusive: bool = False
     settings: Union[MongoSettings, RedisSettings, SQLSettings, None] = None
 
     def __call__(self, *args, **kwargs):
@@ -56,9 +55,8 @@ class ArendTask(BaseModel):
         """
         Run task asynchronously.
         """
-        # get settings for your backend
-        settings = settings or Settings()
-        Task = settings.backend()
+        settings = settings or Settings().arend
+        Task = settings.get_backend()
 
         # create and save a task in your backend
         task = Task(
@@ -69,7 +67,6 @@ class ArendTask(BaseModel):
             kwargs=kwargs or Task.kwargs,
             priority=priority or self.priority or Task.priority,
             delay=delay or self.delay or Task.delay,
-            exclusive=self.exclusive,
         ).save()  # default to SCHEDULED
 
         # put into the queue and set task as PENDING
@@ -83,8 +80,7 @@ def arend_task(
     queue: str = None,
     priority: int = None,
     delay: Union[timedelta, int] = None,
-    exclusive: bool = False,
-    settings: Union[MongoSettings, RedisSettings, SQLSettings, None] = None,
+    settings: ArendSettings = None,
 ):
     """
     Register functions as async functions
@@ -105,7 +101,6 @@ def arend_task(
                 queue=queue,
                 priority=priority,
                 delay=delay,
-                exclusive=exclusive,
                 settings=settings,
             )
 
