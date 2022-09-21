@@ -1,9 +1,5 @@
-from arend.beanstalkd import BeanstalkdConnection
-from arend.backends.mongo import MongoSettings
-from arend.backends.sql import SQLSettings
-from arend.backends.redis import RedisSettings
+from arend.brokers import BeanstalkdConnection
 from arend.settings import Settings
-from typing import Union
 from uuid import UUID
 import logging
 import time
@@ -40,13 +36,12 @@ def consumer(
     """
 
     settings = settings or Settings()
+    beanstalkd = settings.arend.beanstalkd
     Task = settings.backend()
 
     while True:
 
-        with BeanstalkdConnection(
-            queue=queue, settings=settings.arend.beanstalkd
-        ) as conn:
+        with BeanstalkdConnection(queue=queue, settings=beanstalkd) as conn:
 
             message = conn.reserve(timeout=timeout)
             if message is None and not long_polling:
