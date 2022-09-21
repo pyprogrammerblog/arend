@@ -7,7 +7,7 @@ from sqlmodel import create_engine
 from sqlmodel import select, Field
 from pydantic import BaseModel
 from datetime import datetime
-from arend.beanstalkd import BeanstalkdSettings
+from arend.settings import ArendSettings
 from contextlib import contextmanager
 from arend.backends.base import BaseTask
 
@@ -47,8 +47,7 @@ class SQLTask(BaseTask, SQLModel, table=True):  # type: ignore
     uuid: UUID = Field(default_factory=uuid4, primary_key=True)
 
     class Meta:
-        backend: "SQLSettings"
-        beanstalkd: BeanstalkdSettings
+        settings: ArendSettings
 
     @classmethod
     @contextmanager
@@ -56,7 +55,8 @@ class SQLTask(BaseTask, SQLModel, table=True):  # type: ignore
         """
         Yield a connection
         """
-        engine = create_engine(cls.Meta.backend.sql_dsn)
+        engine = create_engine(url=cls.Meta.settings.backend.sql_dsn)
+
         with Session(engine) as session:
             yield session
 

@@ -1,12 +1,12 @@
 import logging
 from datetime import datetime
 from uuid import UUID
-from typing import Dict, Type, List, Union
+from typing import Type, List, Union
 from pydantic import BaseModel, Field
 from pymongo.collection import Collection
 from contextlib import contextmanager
 from arend.backends.base import BaseTask
-from arend.beanstalkd.beanstalkd import BeanstalkdSettings
+from arend.settings import ArendSettings
 from pymongo.mongo_client import MongoClient
 
 
@@ -43,8 +43,7 @@ class MongoTask(BaseTask):
     """
 
     class Meta:
-        backend: "MongoSettings"
-        beanstalkd: BeanstalkdSettings
+        settings: ArendSettings
 
     @classmethod
     @contextmanager
@@ -52,11 +51,15 @@ class MongoTask(BaseTask):
         """
         Yield a Mongo connection to our Tasks Collection
         """
+        mongo_conn = cls.Meta.settings.backend.mongo_connection
+        mongo_db = cls.Meta.settings.backend.mongo_db
+        mongo_collection = cls.Meta.settings.backend.mongo_collection
+
         with MongoClient(
-            cls.Meta.backend.mongo_connection, UuidRepresentation="standard"
+            mongo_conn, UuidRepresentation="standard"
         ) as client:  # type: MongoClient
-            db = client.get_database(cls.Meta.backend.mongo_db)
-            collection = db.get_collection(cls.Meta.backend.mongo_collection)
+            db = client.get_database(mongo_db)
+            collection = db.get_collection(mongo_collection)
             yield collection
 
     @classmethod
@@ -131,7 +134,6 @@ class MongoSettings(BaseModel):
     mongo_connection: str = Field(..., description="Connection string")
     mongo_db: str = Field(..., description="Database name")
     mongo_collection: str = Field(..., description="Collection name")
-    mongo_extras: Dict = Field(default_factory=dict, description="Extras")
 
     def get_backend(self) -> Type[MongoTask]:
         return MongoTask

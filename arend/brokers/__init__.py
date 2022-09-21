@@ -1,4 +1,4 @@
-from arend.beanstalkd.beanstalkd import (
+from arend.brokers.beanstalkd import (
     BeanstalkdConnection,
     BeanstalkdSettings,
 )

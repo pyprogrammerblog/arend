@@ -1,15 +1,16 @@
 from pydantic import BaseSettings, BaseModel
 from typing import Union, Type
-from arend.beanstalkd.beanstalkd import BeanstalkdSettings
+from arend.brokers.beanstalkd import BeanstalkdSettings
 from arend.backends.redis import RedisSettings, RedisTask
 from arend.backends.mongo import MongoSettings, MongoTask
 from arend.backends.sql import SQLSettings, SQLTask
 
 __all__ = [
+    "Settings",
+    "ArendSettings",
     "MongoSettings",
     "RedisSettings",
     "SQLSettings",
-    "Settings",
     "RedisTask",
     "MongoTask",
     "SQLTask",
@@ -76,11 +77,10 @@ class Settings(BaseSettings):
         env_file_encoding = "utf-8"
         env_nested_delimiter = "__"
 
-    def backend(self) -> Type[MongoTask | RedisTask | SQLTask]:
+    def backend(self) -> Type[Union[MongoTask, RedisTask, SQLTask]]:
         """
         Return a Task with configuration already set
         """
         Task = self.arend.backend.get_backend()
-        Task.Meta.backend = self.arend.backend
-        Task.Meta.beanstalkd = self.arend.beanstalkd
+        Task.Meta.settings = self.arend
         return Task

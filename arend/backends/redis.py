@@ -1,9 +1,9 @@
 import logging
-import redis  # type: ignore
+from redis import Redis  # type: ignore
 from typing import Dict, Type, List, Union
 from datetime import datetime
 from uuid import UUID
-from arend.beanstalkd import BeanstalkdSettings
+from arend.settings import ArendSettings
 from pydantic import BaseModel, Field
 from arend.backends.base import BaseTask
 from contextlib import contextmanager
@@ -42,22 +42,20 @@ class RedisTask(BaseTask):
     """
 
     class Meta:
-        backend: "RedisSettings"
-        beanstalkd: BeanstalkdSettings
+        settings: ArendSettings
 
     @classmethod
     @contextmanager
     def redis_connection(cls):
         """
-        Yield a redis connection
+        Yield a Redis connection
         """
-        with redis.Redis(
-            host=cls.Meta.backend.redis_host,
-            port=cls.Meta.backend.redis_port,
-            db=cls.Meta.backend.redis_db,
-            password=cls.Meta.backend.redis_password,
-            **cls.Meta.backend.redis_extras,
-        ) as r:
+        host = cls.Meta.settings.backend.redis_host
+        port = cls.Meta.settings.backend.redis_port
+        db = cls.Meta.settings.backend.redis_db
+        password = cls.Meta.settings.backend.redis_password
+
+        with Redis(host=host, port=port, db=db, password=password) as r:
             yield r
 
     @classmethod
@@ -72,7 +70,7 @@ class RedisTask(BaseTask):
             >>> assert log.uuid == UUID("<your-uuid>")
             >>>
         """
-        with cls.redis_connection() as r:  # type: redis.Redis
+        with cls.redis_connection() as r:  # type: Redis
             if task := r.get(str(uuid)):
                 return cls.parse_raw(task)
             return None
@@ -91,7 +89,7 @@ class RedisTask(BaseTask):
             >>> ...
         """
         self.updated = datetime.utcnow()
-        with self.redis_connection() as r:  # type: redis.Redis
+        with self.redis_connection() as r:  # type: Redis
             r.set(str(self.uuid), self.json())
         return self
 
@@ -106,7 +104,7 @@ class RedisTask(BaseTask):
             >>> assert task.delete() == 0  # count deleted 0
             >>> ...
         """
-        with self.redis_connection() as r:  # type: redis.Redis
+        with self.redis_connection() as r:  # type: Redis
             return r.delete(str(self.uuid))
 
 

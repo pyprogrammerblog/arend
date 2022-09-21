@@ -1,4 +1,4 @@
-from arend.settings.settings import Settings
+from arend.settings.settings import Settings, ArendSettings
 
 
-__all__ = ["Settings"]
+__all__ = ["Settings", "ArendSettings"]

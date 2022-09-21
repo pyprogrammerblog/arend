@@ -6,8 +6,8 @@ from typing import List
 from typing import Optional
 from uuid import uuid4, UUID
 from typing import TYPE_CHECKING
-from arend.beanstalkd import BeanstalkdConnection, BeanstalkdSettings
-from arend.settings import Settings
+from arend.brokers.beanstalkd import BeanstalkdConnection
+from arend.settings.settings import ArendSettings
 
 import importlib
 import logging
@@ -56,12 +56,11 @@ class BaseTask(BaseModel):
 
     created: datetime = Field(default_factory=datetime.utcnow)
     updated: datetime = Field(default=None)
-    exclusive: bool = Field(default=False)
-    count_retries: int = Field(default=0)
+    count_retries: int = Field(default=0, description="Number of retries")
+    max_retries: int = Field(default=3, description="Max retries")
 
     class Meta:
-        backend: None
-        beanstalkd: BeanstalkdSettings
+        settings: ArendSettings
 
     def save(self):
         return NotImplementedError
@@ -100,7 +99,7 @@ class BaseTask(BaseModel):
         if exc_type:
             last_trace = "".join(traceback.format_tb(exc_tb)).strip()
             self.detail = f"Failure: {last_trace}\n"
-            if self.count_retries < 3:
+            if self.count_retries < self.max_retries:
                 self.count_retries += 1
                 self.status = Status.RETRY
                 self.send_to_queue()  # put it in the tube again
