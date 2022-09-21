@@ -1,5 +1,5 @@
 from pydantic import BaseSettings, BaseModel
-from typing import Union
+from typing import Union, Type
 from arend.beanstalkd.beanstalkd import BeanstalkdSettings
 from arend.backends.redis import RedisSettings, RedisTask
 from arend.backends.mongo import MongoSettings, MongoTask
@@ -76,8 +76,11 @@ class Settings(BaseSettings):
         env_file_encoding = "utf-8"
         env_nested_delimiter = "__"
 
-    def backend(self):
+    def backend(self) -> Type[MongoTask | RedisTask | SQLTask]:
         """
-        Return a Backend with configuration already set
+        Return a Task with configuration already set
         """
-        return self.arend.backend.backend()
+        Task = self.arend.backend.get_backend()
+        Task.Meta.backend = self.arend.backend
+        Task.Meta.beanstalkd = self.arend.beanstalkd
+        return Task

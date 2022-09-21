@@ -6,9 +6,11 @@ from pydantic import BaseModel, Field
 from pymongo.collection import Collection
 from contextlib import contextmanager
 from arend.backends.base import BaseTask
+from arend.beanstalkd.beanstalkd import BeanstalkdSettings
 from pymongo.mongo_client import MongoClient
 
-__all__ = ["MongoTask", "MongoSettings"]
+
+__all__ = ["MongoTask", "MongoTasks", "MongoSettings"]
 
 
 logger = logging.getLogger(__name__)
@@ -41,9 +43,8 @@ class MongoTask(BaseTask):
     """
 
     class Meta:
-        mongo_db: str
-        mongo_connection: str
-        mongo_collection: str
+        backend: "MongoSettings"
+        beanstalkd: BeanstalkdSettings
 
     @classmethod
     @contextmanager
@@ -51,15 +52,11 @@ class MongoTask(BaseTask):
         """
         Yield a Mongo connection to our Tasks Collection
         """
-        assert cls.Meta.mongo_connection, "Please set a db connection"
-        assert cls.Meta.mongo_db, "Please set a db name"
-        assert cls.Meta.mongo_collection, "Please set a db collection"
-
         with MongoClient(
-            cls.Meta.mongo_connection, UuidRepresentation="standard"
+            cls.Meta.backend.mongo_connection, UuidRepresentation="standard"
         ) as client:  # type: MongoClient
-            db = client.get_database(cls.Meta.mongo_db)
-            collection = db.get_collection(cls.Meta.mongo_collection)
+            db = client.get_database(cls.Meta.backend.mongo_db)
+            collection = db.get_collection(cls.Meta.backend.mongo_collection)
             yield collection
 
     @classmethod
@@ -136,24 +133,5 @@ class MongoSettings(BaseModel):
     mongo_collection: str = Field(..., description="Collection name")
     mongo_extras: Dict = Field(default_factory=dict, description="Extras")
 
-    def backend(self) -> Type[MongoTask]:
-        """
-        Returns a MongoTask class and set Mongo backend settings
-
-        Usage:
-
-            >>> from arend.backends.mongo import MongoSettings
-            >>>
-            >>> settings = MongoSettings(
-            >>>     mongo_connection="mongodb://user:pass@mongo:27017",
-            >>>     mongo_db="db",
-            >>>     mongo_collection="Tasks"
-            >>> )
-            >>> MongoTask = MongoSettings.backend()
-            >>> task = MongoTask(name="My task")
-            >>> task.save()
-        """
-        MongoTask.Meta.mongo_connection = self.mongo_connection
-        MongoTask.Meta.mongo_db = self.mongo_db
-        MongoTask.Meta.mongo_collection = self.mongo_collection
+    def get_backend(self) -> Type[MongoTask]:
         return MongoTask

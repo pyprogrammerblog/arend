@@ -1,4 +1,3 @@
-from arend.beanstalkd import BeanstalkdConnection
 from datetime import datetime
 from inspect import getmembers
 from pydantic import BaseModel
@@ -7,6 +6,8 @@ from typing import List
 from typing import Optional
 from uuid import uuid4, UUID
 from typing import TYPE_CHECKING
+from arend.beanstalkd import BeanstalkdConnection, BeanstalkdSettings
+from arend.settings import Settings
 
 import importlib
 import logging
@@ -58,6 +59,10 @@ class BaseTask(BaseModel):
     exclusive: bool = Field(default=False)
     count_retries: int = Field(default=0)
 
+    class Meta:
+        backend: None
+        beanstalkd: BeanstalkdSettings
+
     def save(self):
         return NotImplementedError
 
@@ -68,9 +73,12 @@ class BaseTask(BaseModel):
     def get(cls, uuid: UUID):
         return NotImplementedError
 
-    def send_to_queue(self, settings=None):
-
-        with BeanstalkdConnection(queue=self.queue, settings=settings) as conn:
+    def send_to_queue(
+        self,
+    ):
+        with BeanstalkdConnection(
+            queue=self.queue, settings=self.Config.settings.arend.beanstalkd
+        ) as conn:
             conn.put(
                 body=str(self.uuid),
                 priority=self.priority,

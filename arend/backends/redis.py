@@ -3,11 +3,12 @@ import redis  # type: ignore
 from typing import Dict, Type, List, Union
 from datetime import datetime
 from uuid import UUID
+from arend.beanstalkd import BeanstalkdSettings
 from pydantic import BaseModel, Field
 from arend.backends.base import BaseTask
 from contextlib import contextmanager
 
-__all__ = ["RedisTask", "RedisSettings"]
+__all__ = ["RedisTask", "RedisTasks", "RedisSettings"]
 
 
 logger = logging.getLogger(__name__)
@@ -41,11 +42,8 @@ class RedisTask(BaseTask):
     """
 
     class Meta:
-        redis_host: str
-        redis_port: int
-        redis_db: int
-        redis_password: str
-        redis_extras: Dict
+        backend: "RedisSettings"
+        beanstalkd: BeanstalkdSettings
 
     @classmethod
     @contextmanager
@@ -53,17 +51,12 @@ class RedisTask(BaseTask):
         """
         Yield a redis connection
         """
-        assert cls.Meta.redis_host, "Please set a redis host"
-        assert cls.Meta.redis_port, "Please set a redis port"
-        assert cls.Meta.redis_db, "Please set a redis db"
-        assert cls.Meta.redis_password, "Please set a redis password"
-
         with redis.Redis(
-            host=cls.Meta.redis_host,
-            port=cls.Meta.redis_port,
-            db=cls.Meta.redis_db,
-            password=cls.Meta.redis_password,
-            **cls.Meta.redis_extras,
+            host=cls.Meta.backend.redis_host,
+            port=cls.Meta.backend.redis_port,
+            db=cls.Meta.backend.redis_db,
+            password=cls.Meta.backend.redis_password,
+            **cls.Meta.backend.redis_extras,
         ) as r:
             yield r
 
@@ -117,7 +110,7 @@ class RedisTask(BaseTask):
             return r.delete(str(self.uuid))
 
 
-class RedisLogs(BaseModel):
+class RedisTasks(BaseModel):
     """
     Defines the RedisLogs collection
     """
@@ -139,26 +132,5 @@ class RedisSettings(BaseModel):
         default_factory=dict, description="Redis extras"
     )
 
-    def backend(self) -> Type[RedisTask]:
-        """
-        Returns a RedisLog class and set Redis backend settings
-
-        Usage:
-            >>> from arend.backends.redis import RedisSettings
-            >>>
-            >>> settings = RedisSettings(
-            >>>     redis_host="redis",
-            >>>     redis_port="6379",
-            >>>     redis_db="logs",
-            >>>     redis_password="pass"
-            >>> )
-            >>> RedisTask = RedisSettings.backend()  # type: Type[RedisTask]
-            >>> task = RedisTask(name="My task", description="A cool task")
-            >>> task.save()
-        """
-        RedisTask.Meta.redis_host = self.redis_host
-        RedisTask.Meta.redis_port = self.redis_port
-        RedisTask.Meta.redis_db = self.redis_db
-        RedisTask.Meta.redis_password = self.redis_password
-        RedisTask.Meta.redis_extras = self.redis_extras
+    def get_backend(self) -> Type[RedisTask]:
         return RedisTask

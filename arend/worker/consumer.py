@@ -18,8 +18,8 @@ def consumer(
     queue: str,
     timeout: int = 20,
     sleep_time: float = 0.1,
-    long_polling: bool = False,
-    settings: Union[MongoSettings, RedisSettings, SQLSettings, None] = None,
+    long_polling: bool = True,
+    settings: Settings = None,
 ):
     """
     Consumer. Consume messages from the queue.
@@ -35,14 +35,8 @@ def consumer(
 
     Usage:
         >>> from arend.worker.consumer import consumer
-        >>> from arend.backends.mongo import MongoSettings
         >>>
-        >>> settings = MongoSettings(
-        >>>     mongo_connection="mongodb://user:pass@mongo:27017",
-        >>>     mongo_db="db",
-        >>>     mongo_collection="logs",
-        >>> )
-        >>> consumer(queue="my_queue", long_polling=True, settings=settings)
+        >>> consumer(queue="my_queue")
     """
 
     settings = settings or Settings()
@@ -50,12 +44,13 @@ def consumer(
 
     while True:
 
-        with BeanstalkdConnection(queue=queue, settings=settings) as conn:
+        with BeanstalkdConnection(
+            queue=queue, settings=settings.arend.beanstalkd
+        ) as conn:
 
             message = conn.reserve(timeout=timeout)
             if message is None and not long_polling:
-                # if not long_polling, consume all messages and break loop
-                break
+                break  # if not long_polling, consume all messages and break
 
             if message:
                 task = Task.get(uuid=UUID(message.body))

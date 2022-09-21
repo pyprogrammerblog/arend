@@ -1,17 +1,18 @@
 import logging
 from uuid import UUID
 from uuid import uuid4
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Type
 from sqlmodel import Session, SQLModel
 from sqlmodel import create_engine
 from sqlmodel import select, Field
 from pydantic import BaseModel
 from datetime import datetime
+from arend.beanstalkd import BeanstalkdSettings
 from contextlib import contextmanager
 from arend.backends.base import BaseTask
 
 
-__all__ = ["SQLTask", "SQLSettings"]
+__all__ = ["SQLTask", "SQLTasks", "SQLSettings"]
 
 
 logger = logging.getLogger(__name__)
@@ -46,7 +47,8 @@ class SQLTask(BaseTask, SQLModel, table=True):  # type: ignore
     uuid: UUID = Field(default_factory=uuid4, primary_key=True)
 
     class Meta:
-        sql_dsn: str
+        backend: "SQLSettings"
+        beanstalkd: BeanstalkdSettings
 
     @classmethod
     @contextmanager
@@ -54,9 +56,7 @@ class SQLTask(BaseTask, SQLModel, table=True):  # type: ignore
         """
         Yield a connection
         """
-        assert cls.Meta.sql_dsn, "Please set a sql dsn string"
-
-        engine = create_engine(cls.Meta.sql_dsn)
+        engine = create_engine(cls.Meta.backend.sql_dsn)
         with Session(engine) as session:
             yield session
 
@@ -147,8 +147,5 @@ class SQLSettings(BaseModel):
     sql_table: str = Field(default="arend_tasks", description="Table name")
     sql_extras: Dict = Field(default_factory=dict, description="Extras")
 
-    def backend(self):
-        SQLTask.Meta.sql_dsn = self.sql_dsn
-        SQLTask.Meta.sql_extras = self.sql_extras
-        SQLTask.__tablename__ = self.sql_table
+    def get_backend(self) -> Type[SQLTask]:
         return SQLTask
