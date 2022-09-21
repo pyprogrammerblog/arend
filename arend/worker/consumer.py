@@ -1,8 +1,8 @@
-from arend.broker import BeanstalkdBroker
+from arend.beanstalkd import BeanstalkdConnection
 from arend.backends.mongo import MongoSettings
 from arend.backends.sql import SQLSettings
 from arend.backends.redis import RedisSettings
-from arend.backends import Settings
+from arend.settings import Settings
 from typing import Union
 from uuid import UUID
 import logging
@@ -50,9 +50,9 @@ def consumer(
 
     while True:
 
-        with BeanstalkdBroker(queue=queue) as broker:
+        with BeanstalkdConnection(queue=queue, settings=settings) as conn:
 
-            message = broker.reserve(timeout=timeout)
+            message = conn.reserve(timeout=timeout)
             if message is None and not long_polling:
                 # if not long_polling, consume all messages and break loop
                 break

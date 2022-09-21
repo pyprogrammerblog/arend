@@ -1080,6 +1080,14 @@ optional = false
 python-versions = ">=3.7"
 
 [[package]]
+name = "pyyaml"
+version = "6.0"
+description = "YAML parser and emitter for Python"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[[package]]
 name = "pyzmq"
 version = "23.2.1"
 description = "Python bindings for 0MQ"
@@ -1271,8 +1279,8 @@ optional = false
 python-versions = ">=3.5"
 
 [package.extras]
+lint = ["flake8", "mypy", "docutils-stubs"]
 test = ["pytest"]
-lint = ["docutils-stubs", "mypy", "flake8"]
 
 [[package]]
 name = "sqlalchemy"
@@ -1504,7 +1512,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "e7e5df4ae602ad6caa63d07a2da206af2ee983f73de1ce7f5efa3fbd07b6b126"
+content-hash = "9c67dcff3ad3d293bd055c6f8201401275da9aa59ecc07bc44dabb4357e032de"
 
 [metadata.files]
 alabaster = []
@@ -1595,6 +1603,7 @@ python-dateutil = []
 pytz = []
 pywin32 = []
 pywinpty = []
+pyyaml = []
 pyzmq = []
 redis = []
 requests = []

@@ -1,9 +1,7 @@
-from arend.settings import settings
-from arend.utils.locking import Lock
 from arend.backends.mongo import MongoSettings, MongoTask
 from arend.backends.sql import SQLSettings, SQLTask
 from arend.backends.redis import RedisSettings, RedisTask
-from arend.backends import Settings
+from arend.settings import Settings
 from pydantic import BaseModel
 from typing import Callable
 from datetime import timedelta
@@ -42,11 +40,7 @@ class ArendTask(BaseModel):
         """
         Run the task immediately.
         """
-        if not self.exclusive:
-            return self.processor(*args, **kwargs)
-
-        with Lock(name=f"{settings.env}.{self.location}"):
-            return self.processor(*args, **kwargs)
+        return self.processor(*args, **kwargs)
 
     def apply_async(
         self,

@@ -3,7 +3,8 @@ import pytest
 import os
 from arend.arend import arend_task
 from pymongo.mongo_client import MongoClient
-from arend.consumer.consumer import consumer
+from arend.worker.consumer import consumer
+from arend.utils.locking import Lock
 from sqlalchemy_utils import drop_database
 from sqlalchemy_utils import database_exists
 from sqlalchemy_utils import create_database
@@ -11,11 +12,11 @@ from sqlmodel import create_engine, Session
 from arend.backends.sql import SQLTask
 
 
-# @pytest.fixture(scope="function")
-# def lock_flush():
-#     Lock("piet").flush()
-#     yield
-#     Lock("piet").flush()
+@pytest.fixture(scope="function")
+def lock_flush():
+    Lock("piet").flush()
+    yield
+    Lock("piet").flush()
 
 
 @pytest.fixture(scope="function")
@@ -55,7 +56,7 @@ def sql_backend():
 
 
 @pytest.fixture(scope="function")
-def exhaust_queue():
+def flush_queue():
     consumer(queue="test", timeout=0, long_polling=False)
     yield
     consumer(queue="test", timeout=0, long_polling=False)
@@ -63,41 +64,43 @@ def exhaust_queue():
 
 @pytest.fixture(scope="function")
 def env_vars_redis():
-    os.environ["AREND__REDIS_HOST"] = "redis"
-    os.environ["AREND__REDIS_DB"] = "1"
-    os.environ["AREND__REDIS_PASSWORD"] = "pass"
+    os.environ["AREND__BACKEND__REDIS_HOST"] = "redis"
+    os.environ["AREND__BACKEND__REDIS_DB"] = "1"
+    os.environ["AREND__BACKEND__REDIS_PASSWORD"] = "pass"
     try:
         yield
     finally:
-        del os.environ["AREND__REDIS_HOST"]
-        del os.environ["AREND__REDIS_DB"]
-        del os.environ["AREND__REDIS_PASSWORD"]
+        del os.environ["AREND__BACKEND__REDIS_HOST"]
+        del os.environ["AREND__BACKEND__REDIS_DB"]
+        del os.environ["AREND__BACKEND__REDIS_PASSWORD"]
 
 
 @pytest.fixture(scope="function")
 def env_vars_mongo():
-    os.environ["AREND__MONGO_CONNECTION"] = "mongodb://user:pass@mongo:27017"
-    os.environ["AREND__MONGO_DB"] = "db"
-    os.environ["AREND__MONGO_COLLECTION"] = "logs"
+    os.environ[
+        "AREND__BACKEND__MONGO_CONNECTION"
+    ] = "mongodb://user:pass@mongo:27017"
+    os.environ["AREND__BACKEND__MONGO_DB"] = "db"
+    os.environ["AREND__BACKEND__MONGO_COLLECTION"] = "logs"
     try:
         yield
     finally:
-        del os.environ["AREND__MONGO_CONNECTION"]
-        del os.environ["AREND__MONGO_DB"]
-        del os.environ["AREND__MONGO_COLLECTION"]
+        del os.environ["AREND__BACKEND__MONGO_CONNECTION"]
+        del os.environ["AREND__BACKEND__MONGO_DB"]
+        del os.environ["AREND__BACKEND__MONGO_COLLECTION"]
 
 
 @pytest.fixture(scope="function")
 def env_vars_sql():
     os.environ[
-        "AREND__SQL_DSN"
+        "AREND__BACKEND__SQL_DSN"
     ] = "postgresql+psycopg2://user:pass@postgres:5432/db"
-    os.environ["AREND__SQL_TABLE"] = "logs"
+    os.environ["AREND__BACKEND__SQL_TABLE"] = "logs"
     try:
         yield
     finally:
-        del os.environ["AREND__SQL_DSN"]
-        del os.environ["AREND__SQL_TABLE"]
+        del os.environ["AREND__BACKEND__SQL_DSN"]
+        del os.environ["AREND__BACKEND__SQL_TABLE"]
 
 
 @arend_task(queue="test")

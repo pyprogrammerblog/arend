@@ -1,33 +1,83 @@
-from typing import Literal
+from pydantic import BaseSettings, BaseModel
+from typing import Union
+from arend.beanstalkd.beanstalkd import BeanstalkdSettings
+from arend.backends.redis import RedisSettings, RedisTask
+from arend.backends.mongo import MongoSettings, MongoTask
+from arend.backends.sql import SQLSettings, SQLTask
 
-from pydantic import (
-    BaseModel,
-    BaseSettings,
-    RedisDsn,
-    PostgresDsn,
-    AmqpDsn,
-)
+__all__ = [
+    "MongoSettings",
+    "RedisSettings",
+    "SQLSettings",
+    "Settings",
+    "RedisTask",
+    "MongoTask",
+    "SQLTask",
+]
+
+
+class ArendSettings(BaseModel):
+    """ """
+
+    beanstalkd: BeanstalkdSettings
+    backend: Union[MongoSettings, RedisSettings, SQLSettings]
+    task_max_retries: int = 10
+    task_retry_backoff_factor: int = 1
+    task_priority: int = None
+    task_delay: int = None
+    task_delay_factor: int = 10
 
 
 class Settings(BaseSettings):
+    """
+    Different ways to pass settings to the `Settings` with priority order.
 
-    # broker
+    **1. Passing settings** as parameters when creating a `Settings`
+    object:
 
-    # backend
+        >>> from arend.backends import MongoSettings, Settings
+        >>>
+        >>> mongo_settings = MongoSettings(
+        >>>     mongo_connection="mongodb://user:pass@mongo:27017",
+        >>>     mongo_db="db",
+        >>>     mongo_collection="logs",
+        >>> )
+        >>> settings = Settings(arend=mongo_settings)
 
-    # general settings
-    max_retries: int = 10
-    backoff_factor: int = 1
-    connect_timeout: int = 10  # seconds
-    priority: int = None
-    delay: int = None
-    delay_factor: int = 10
-    sleep_time_consumer: int = 1
+    **2. Environment variables**. Set you setting parameters in your
+    environment. The `AREND__` prefix indicates that belongs to the
+    `Arend` settings. The `Settings` will catch these settings.
 
-    # redis settings
-    redis_socket_timeout: int = 2 * 60
-    redis_socket_connect_timeout: int = 2 * 60
+    Examples:
 
-    # mongo backend settings
-    mongodb_max_pool_size: int = 10
-    mongodb_min_pool_size: int = 0
+    SQL::
+
+        AREND__BACKEND__SQL_DSN='postgresql+psycopg2://user:pass@postgres:5432/db'
+        AREND__BACKEND__SQL_TABLE='logs'
+
+    Redis::
+
+        AREND__BACKEND__REDIS_HOST='redis'
+        AREND__BACKEND__REDIS_DB='1'
+        AREND__BACKEND__REDIS_PASSWORD='pass'
+
+    Mongo::
+
+        AREND__BACKEND__MONGO_CONNECTION='mongodb://user:pass@mongo:27017'
+        AREND__BACKEND__MONGO_DB='db'
+        AREND__BACKEND__MONGO_COLLECTION='logs'
+
+    """
+
+    arend: ArendSettings
+
+    class Config:
+        env_file = ".env"
+        env_file_encoding = "utf-8"
+        env_nested_delimiter = "__"
+
+    def backend(self):
+        """
+        Return a Backend with configuration already set
+        """
+        return self.arend.backend.backend()
