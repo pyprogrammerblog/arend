@@ -3,7 +3,7 @@ services:
 
   beanstalkd:
     build:
-      context: docker/beanstalkd
+      context: beanstalkd
       dockerfile: Dockerfile
     command: /usr/bin/beanstalkd -b /var/lib/beanstalkd
     ports:
@@ -34,7 +34,7 @@ services:
 
   app:
     build:
-      context: docker/arend
+      context: .
       dockerfile: Dockerfile
     depends_on:
       - beanstalkd

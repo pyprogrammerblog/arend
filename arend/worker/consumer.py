@@ -1,5 +1,5 @@
 from arend.brokers import BeanstalkdConnection
-from arend.settings import Settings
+from arend.settings import Settings, ArendSettings
 from uuid import UUID
 import logging
 import time
@@ -15,7 +15,7 @@ def consumer(
     timeout: int = 20,
     sleep_time: float = 0.1,
     long_polling: bool = True,
-    settings: Settings = None,
+    settings: ArendSettings = None,
 ):
     """
     Consumer. Consume messages from the queue.
@@ -36,20 +36,20 @@ def consumer(
     """
 
     settings = settings or Settings().arend
-    beanstalkd = settings.arend.beanstalkd
     Task = settings.get_backend()
 
     while True:
 
-        with BeanstalkdConnection(queue=queue, settings=beanstalkd) as conn:
+        with BeanstalkdConnection(
+            queue=queue, settings=settings.beanstalkd
+        ) as conn:
 
             message = conn.reserve(timeout=timeout)
             if message is None and not long_polling:
                 break  # if not long_polling, consume all messages and break
 
             if message:
-                task = Task.get(uuid=UUID(message.body))
-                if task:
+                if task := Task.get(uuid=UUID(message.body)):
                     task.run()  # run task here
 
                 message.delete()
