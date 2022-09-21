@@ -1,11 +1,8 @@
-from arend.backends.mongo import MongoSettings, MongoTask
-from arend.backends.sql import SQLSettings, SQLTask
-from arend.backends.redis import RedisSettings, RedisTask
+from arend.backends import MongoTask, RedisTask, SQLTask
 from arend.settings import ArendSettings, Settings
 from pydantic import BaseModel
-from typing import Callable
+from typing import Callable, Union
 from datetime import timedelta
-from typing import Union
 
 import functools
 import logging
@@ -27,7 +24,7 @@ class ArendTask(BaseModel):
     queue: str = None
     priority: int = None
     delay: Union[timedelta, int] = None
-    settings: Union[MongoSettings, RedisSettings, SQLSettings, None] = None
+    settings: ArendSettings = None
 
     def __call__(self, *args, **kwargs):
         return self.run(*args, **kwargs)
@@ -48,9 +45,7 @@ class ArendTask(BaseModel):
         delay: Union[timedelta, int] = 0,
         args: tuple = None,
         kwargs: dict = None,
-        settings: Union[
-            MongoSettings, RedisSettings, SQLSettings, None
-        ] = settings,
+        settings: ArendSettings = settings,
     ) -> Union[MongoTask, RedisTask, SQLTask]:
         """
         Run task asynchronously.
