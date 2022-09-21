@@ -102,11 +102,11 @@ class BaseTask(BaseModel):
                 self.status = Status.RETRY
                 self.send_to_queue()  # put it in the tube again
             else:
-                self.end_time = datetime.utcnow()
                 self.status = Status.FAIL
         else:
             self.status = Status.FINISHED
-            self.end_time = datetime.utcnow()
+
+        self.end_time = datetime.utcnow()
         self.save()
         return True
 
