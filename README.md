@@ -23,9 +23,7 @@ from arend.settings import ArendSettings, BeanstalkdSettings
 settings = ArendSettings(
     task_delay=1,
     task_delay_factor=1,
-    broker=BeanstalkdSettings(
-        host="beanstalkd", port=11300
-    ),
+    broker=BeanstalkdSettings(host="beanstalkd", port=11300),
     backend=MongoSettings(
         mongo_db="db",
         mongo_collection="logs",
