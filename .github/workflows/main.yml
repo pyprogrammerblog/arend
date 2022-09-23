@@ -26,7 +26,7 @@ jobs:
         run: docker-compose run --rm app poetry run pytest
 
       - name: Flake8
-        run: docker-compose run --rm app poetry run flake8
+        run: docker-compose run --rm app poetry run flake8 arend
 
       - name: MyPy
         run: docker-compose run --rm app poetry run mypy arend --no-strict-optional --ignore-missing-imports
