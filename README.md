@@ -28,7 +28,7 @@ settings = ArendSettings(
         mongo_db="db",
         mongo_collection="logs",
         mongo_connection="mongodb://user:pass@mongo:27017",
-    ),
+    )
 )
 
 @arend_task(queue="my_queue", settings=settings)
