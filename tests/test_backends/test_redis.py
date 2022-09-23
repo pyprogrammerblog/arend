@@ -1,12 +1,18 @@
 import uuid
-from arend.backends import Settings
+from arend.settings import Settings, ArendSettings
+from arend.settings.settings import BeanstalkdSettings
 from arend.backends.redis import RedisTask, RedisSettings
 
 
 def test_create_settings_passing_params_redis(redis_backend):
 
     redis_settings = RedisSettings(redis_host="redis", redis_password="pass")
-    Task = redis_settings.backend()
+    beanstalkd_settings = BeanstalkdSettings(host="beanstalkd", port=11300)
+    settings = ArendSettings(
+        backend=redis_settings, beanstalkd=beanstalkd_settings
+    )
+
+    Task = settings.get_backend()
     task: RedisTask = Task(name="My task", queue="test", location="location")
 
     assert not redis_backend.get(str(task.uuid))
@@ -26,7 +32,7 @@ def test_create_settings_passing_params_redis(redis_backend):
 def test_create_settings_env_vars_redis(redis_backend, env_vars_redis):
 
     settings = Settings()
-    Task = settings.backend()
+    Task = settings.arend.get_backend()
     task: RedisTask = Task(name="My task", queue="test", location="location")
 
     assert not redis_backend.get(str(task.uuid))

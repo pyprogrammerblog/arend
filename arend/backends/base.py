@@ -7,7 +7,6 @@ from typing import Optional
 from uuid import uuid4, UUID
 from typing import TYPE_CHECKING
 from arend.brokers.beanstalkd import BeanstalkdConnection
-from arend.settings.settings import ArendSettings
 
 import importlib
 import logging
@@ -16,6 +15,7 @@ import traceback
 
 if TYPE_CHECKING:
     from arend.arend import ArendTask
+    from arend.settings.settings import ArendSettings
 
 
 logger = logging.getLogger(__name__)
@@ -60,7 +60,7 @@ class BaseTask(BaseModel):
     max_retries: int = Field(default=3, description="Max retries")
 
     class Meta:
-        settings: ArendSettings
+        settings: "ArendSettings"
 
     def save(self):
         return NotImplementedError

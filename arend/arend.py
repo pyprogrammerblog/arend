@@ -1,5 +1,5 @@
-from arend.backends import MongoTask, RedisTask, SQLTask
 from arend.settings import ArendSettings, Settings
+from arend.backends import MongoTask, RedisTask, SQLTask
 from pydantic import BaseModel
 from typing import Callable, Union
 from datetime import timedelta

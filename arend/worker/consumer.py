@@ -14,7 +14,7 @@ def consumer(
     queue: str,
     timeout: int = 20,
     sleep_time: float = 0.1,
-    long_polling: bool = True,
+    long_polling: bool = False,
     settings: ArendSettings = None,
 ):
     """

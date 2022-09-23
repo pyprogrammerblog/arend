@@ -5,6 +5,7 @@ from arend.backends.redis import RedisSettings, RedisTask
 from arend.backends.mongo import MongoSettings, MongoTask
 from arend.backends.sql import SQLSettings, SQLTask
 
+
 __all__ = [
     "Settings",
     "ArendSettings",
@@ -38,45 +39,6 @@ class ArendSettings(BaseModel):
 
 
 class Settings(BaseSettings):
-    """
-    Different ways to pass settings to the `Settings` with priority order.
-
-    **1. Passing settings** as parameters when creating a `Settings`
-    object:
-
-        >>> from arend.backends import MongoSettings, Settings
-        >>>
-        >>> mongo_settings = MongoSettings(
-        >>>     mongo_connection="mongodb://user:pass@mongo:27017",
-        >>>     mongo_db="db",
-        >>>     mongo_collection="logs",
-        >>> )
-        >>> settings = Settings(arend=mongo_settings)
-
-    **2. Environment variables**. Set you setting parameters in your
-    environment. The `AREND__` prefix indicates that belongs to the
-    `Arend` settings. The `Settings` will catch these settings.
-
-    Examples:
-
-    SQL::
-
-        AREND__BACKEND__SQL_DSN='postgresql+psycopg2://user:pass@postgres:5432/db'
-        AREND__BACKEND__SQL_TABLE='logs'
-
-    Redis::
-
-        AREND__BACKEND__REDIS_HOST='redis'
-        AREND__BACKEND__REDIS_DB='1'
-        AREND__BACKEND__REDIS_PASSWORD='pass'
-
-    Mongo::
-
-        AREND__BACKEND__MONGO_CONNECTION='mongodb://user:pass@mongo:27017'
-        AREND__BACKEND__MONGO_DB='db'
-        AREND__BACKEND__MONGO_COLLECTION='logs'
-
-    """
 
     arend: ArendSettings
 

@@ -1,12 +1,15 @@
 import logging
 from redis import Redis  # type: ignore
-from typing import Dict, Type, List, Union
+from typing import Dict, Type, List, Union, TYPE_CHECKING
 from datetime import datetime
 from uuid import UUID
-from arend.settings import ArendSettings
 from pydantic import BaseModel, Field
 from arend.backends.base import BaseTask
 from contextlib import contextmanager
+
+if TYPE_CHECKING:
+    from arend.settings import ArendSettings
+
 
 __all__ = ["RedisTask", "RedisTasks", "RedisSettings"]
 
@@ -42,7 +45,7 @@ class RedisTask(BaseTask):
     """
 
     class Meta:
-        settings: ArendSettings
+        settings: "ArendSettings"
 
     @classmethod
     @contextmanager

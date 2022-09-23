@@ -1,22 +1,14 @@
 import redis
 import pytest
 import os
-from arend.arend import arend_task
+from arend import arend_task
 from pymongo.mongo_client import MongoClient
 from arend.worker.consumer import consumer
-from arend.utils.locking import Lock
 from sqlalchemy_utils import drop_database
 from sqlalchemy_utils import database_exists
 from sqlalchemy_utils import create_database
 from sqlmodel import create_engine, Session
 from arend.backends.sql import SQLTask
-
-
-@pytest.fixture(scope="function")
-def lock_flush():
-    Lock("piet").flush()
-    yield
-    Lock("piet").flush()
 
 
 @pytest.fixture(scope="function")
@@ -67,12 +59,16 @@ def env_vars_redis():
     os.environ["AREND__BACKEND__REDIS_HOST"] = "redis"
     os.environ["AREND__BACKEND__REDIS_DB"] = "1"
     os.environ["AREND__BACKEND__REDIS_PASSWORD"] = "pass"
+    os.environ["AREND__BEANSTALKD__HOST"] = "beanstalkd"
+    os.environ["AREND__BEANSTALKD__PORT"] = "11300"
     try:
         yield
     finally:
         del os.environ["AREND__BACKEND__REDIS_HOST"]
         del os.environ["AREND__BACKEND__REDIS_DB"]
         del os.environ["AREND__BACKEND__REDIS_PASSWORD"]
+        del os.environ["AREND__BEANSTALKD__HOST"]
+        del os.environ["AREND__BEANSTALKD__PORT"]
 
 
 @pytest.fixture(scope="function")
@@ -82,12 +78,16 @@ def env_vars_mongo():
     ] = "mongodb://user:pass@mongo:27017"
     os.environ["AREND__BACKEND__MONGO_DB"] = "db"
     os.environ["AREND__BACKEND__MONGO_COLLECTION"] = "logs"
+    os.environ["AREND__BEANSTALKD__HOST"] = "beanstalkd"
+    os.environ["AREND__BEANSTALKD__PORT"] = "11300"
     try:
         yield
     finally:
         del os.environ["AREND__BACKEND__MONGO_CONNECTION"]
         del os.environ["AREND__BACKEND__MONGO_DB"]
         del os.environ["AREND__BACKEND__MONGO_COLLECTION"]
+        del os.environ["AREND__BEANSTALKD__HOST"]
+        del os.environ["AREND__BEANSTALKD__PORT"]
 
 
 @pytest.fixture(scope="function")
@@ -96,11 +96,15 @@ def env_vars_sql():
         "AREND__BACKEND__SQL_DSN"
     ] = "postgresql+psycopg2://user:pass@postgres:5432/db"
     os.environ["AREND__BACKEND__SQL_TABLE"] = "logs"
+    os.environ["AREND__BEANSTALKD__HOST"] = "beanstalkd"
+    os.environ["AREND__BEANSTALKD__PORT"] = "11300"
     try:
         yield
     finally:
         del os.environ["AREND__BACKEND__SQL_DSN"]
         del os.environ["AREND__BACKEND__SQL_TABLE"]
+        del os.environ["AREND__BEANSTALKD__HOST"]
+        del os.environ["AREND__BEANSTALKD__PORT"]
 
 
 @arend_task(queue="test")

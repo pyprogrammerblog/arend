@@ -1,5 +1,5 @@
 import uuid
-from arend.backends import Settings
+from arend.settings import Settings
 from sqlmodel import select
 from arend.backends.sql import SQLSettings, SQLTask
 
@@ -10,7 +10,7 @@ def test_create_settings_passing_params_sql(sql_backend):
         sql_dsn="postgresql+psycopg2://user:pass@postgres:5432/db",
         sql_table="logs",
     )
-    Task = sql_settings.backend()
+    Task = sql_settings.get_backend()
     task: SQLTask = Task(name="My task", queue="test", location="location")
 
     assert not sql_backend.exec(
@@ -33,7 +33,7 @@ def test_create_settings_passing_params_sql(sql_backend):
 def test_create_settings_env_vars_sql(sql_backend, env_vars_sql):
 
     settings = Settings()
-    Task = settings.backend()
+    Task = settings.arend.get_backend()
     log: SQLTask = Task(name="My task", queue="test", location="location")
 
     assert not sql_backend.exec(

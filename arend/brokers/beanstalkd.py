@@ -1,5 +1,4 @@
 from pystalkd.Beanstalkd import Connection
-from arend.settings import Settings
 from pydantic import BaseModel
 from pydantic import Field
 
@@ -25,6 +24,8 @@ class BeanstalkdConnection:
     """
 
     def __init__(self, queue: str, settings: BeanstalkdSettings = None):
+        from arend.settings import Settings
+
         self.settings = settings or Settings().arend.beanstalkd
         self.connection = Connection(
             host=self.settings.host, port=self.settings.port

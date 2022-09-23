@@ -1,16 +1,17 @@
 import logging
 from uuid import UUID
 from uuid import uuid4
-from typing import Dict, List, Union, Type
+from typing import Dict, List, Union, Type, TYPE_CHECKING
 from sqlmodel import Session, SQLModel
 from sqlmodel import create_engine
 from sqlmodel import select, Field
 from pydantic import BaseModel
 from datetime import datetime
-from arend.settings import ArendSettings
 from contextlib import contextmanager
 from arend.backends.base import BaseTask
 
+if TYPE_CHECKING:
+    from arend.settings import ArendSettings
 
 __all__ = ["SQLTask", "SQLTasks", "SQLSettings"]
 
@@ -47,7 +48,7 @@ class SQLTask(BaseTask, SQLModel, table=True):  # type: ignore
     uuid: UUID = Field(default_factory=uuid4, primary_key=True)
 
     class Meta:
-        settings: ArendSettings
+        settings: "ArendSettings"
 
     @classmethod
     @contextmanager

@@ -1,5 +1,5 @@
  arend
-=============
+==================
 
 Clone the project and move inside:
 ```shell
@@ -25,47 +25,6 @@ docker-compose run --rm app poetry run pytest
 Shut down all services
 ```shell
 docker-compose down
-```
-
-### Local development
-
-These instructions assume that ``git``, ``docker``, and ``docker-compose`` are
-installed on your host machine.
-
-First, clone this repo and make some required directories.
-
-```shell
-git clone https://github.com/pyprogrammerblog/arend.git
-cd arend
-```
-
-Then build the docker image
-
-```shell
-docker-compose build app
-```
-
-Install packages
-
-```shell
-docker-compose run --rm app poetry install
-```
-
-Run test suite
-
-```shell
-docker-compose run --rm app poetry run pytest
-```
-
-You can access to the shell
-```shell
-docker-compose run --rm app poetry shell
-```
-
-To stop all running containers without removing them, do this.
-
-```shell
-docker-compose stop
 ```
 
 ### Jupyter Notebook

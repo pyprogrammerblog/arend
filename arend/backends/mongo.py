@@ -1,13 +1,16 @@
 import logging
 from datetime import datetime
 from uuid import UUID
-from typing import Type, List, Union
+from typing import Type, List, Union, TYPE_CHECKING
 from pydantic import BaseModel, Field
 from pymongo.collection import Collection
 from contextlib import contextmanager
 from arend.backends.base import BaseTask
-from arend.settings import ArendSettings
 from pymongo.mongo_client import MongoClient
+
+
+if TYPE_CHECKING:
+    from arend.settings import ArendSettings
 
 
 __all__ = ["MongoTask", "MongoTasks", "MongoSettings"]
@@ -43,7 +46,7 @@ class MongoTask(BaseTask):
     """
 
     class Meta:
-        settings: ArendSettings
+        settings: "ArendSettings"
 
     @classmethod
     @contextmanager

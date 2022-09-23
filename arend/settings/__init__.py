@@ -1,4 +1,3 @@
-from arend.settings.settings import Settings, ArendSettings
+from arend.settings.settings import ArendSettings, Settings, BeanstalkdSettings
 
-
-__all__ = ["Settings", "ArendSettings"]
+__all__ = ["ArendSettings", "BeanstalkdSettings", "Settings"]
