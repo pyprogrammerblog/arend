@@ -15,13 +15,22 @@ Basic Usage
 
 In your code:
  ```python
-from arend import arend_task
+from arend import arend_task, consumer
 from arend.backends.mongo import MongoSettings
+from arend.settings import ArendSettings, BeanstalkdSettings
 
-settings = MongoSettings(
-    mongo_db="db",
-    mongo_collection="logs",
-    mongo_connection="mongodb://user:pass@mongo:27017",
+
+settings = ArendSettings(
+    task_delay=1,
+    task_delay_factor=1,
+    beanstalkd=BeanstalkdSettings(
+        host="beanstalkd", port=11300
+    ),
+    backend=MongoSettings(
+        mongo_db="db",
+        mongo_collection="logs",
+        mongo_connection="mongodb://user:pass@mongo:27017",
+    ),
 )
 
 @arend_task(queue="my_queue", settings=settings)
@@ -30,21 +39,9 @@ def double(num: int) -> int:
 
 # create a task and send it to the queue
 double.apply_async()
-```
-
-In your worker, consume the task:
-```python
-from arend.worker.consumer import consumer
-from arend.backends.mongo import MongoSettings
-
-settings = MongoSettings(
-    mongo_connection="mongodb://user:pass@mongo:27017",
-    mongo_db="db",
-    mongo_collection="logs",
-)
 
 # consume tasks from queue
-consumer(queue="my_queue", long_polling=True, settings=settings)
+consumer(queue="my_queue", settings=settings)
 ```
 
 Backends
