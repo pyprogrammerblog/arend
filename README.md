@@ -31,14 +31,15 @@ settings = ArendSettings(
     )
 )
 
+# define your task
 @arend_task(queue="my_queue", settings=settings)
 def double(num: int) -> int:
     return num * 2
 
-# create a task and send it to the queue
+# send it to the queue
 double.apply_async()
 
-# consume tasks from queue
+# consume tasks
 consumer(queue="my_queue", settings=settings)
 ```
 
