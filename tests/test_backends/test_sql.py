@@ -1,6 +1,6 @@
 import uuid
-from arend.settings import Settings
 from sqlmodel import select
+from arend.settings import Settings, ArendSettings, BeanstalkdSettings
 from arend.backends.sql import SQLSettings, SQLTask
 
 
@@ -10,8 +10,13 @@ def test_create_settings_passing_params_sql(sql_backend):
         sql_dsn="postgresql+psycopg2://user:pass@postgres:5432/db",
         sql_table="logs",
     )
-    Task = sql_settings.get_backend()
-    task: SQLTask = Task(name="My task", queue="test", location="location")
+    beanstalkd_settings = BeanstalkdSettings(host="beanstalkd", port=11300)
+    settings = ArendSettings(
+        beanstalkd=beanstalkd_settings, backend=sql_settings
+    )
+
+    Task = settings.get_backend()
+    task: SQLTask = Task(name="My task", queue="test", func=lambda x: x + 1)
 
     assert not sql_backend.exec(
         select(Task).where(Task.uuid == task.uuid)
@@ -34,7 +39,7 @@ def test_create_settings_env_vars_sql(sql_backend, env_vars_sql):
 
     settings = Settings()
     Task = settings.arend.get_backend()
-    log: SQLTask = Task(name="My task", queue="test", location="location")
+    log: SQLTask = Task(name="My task", queue="test", func=lambda x: x + 1)
 
     assert not sql_backend.exec(
         select(Task).where(Task.uuid == log.uuid)

@@ -13,39 +13,20 @@ from arend.backends.base import BaseTask
 if TYPE_CHECKING:
     from arend.settings import ArendSettings
 
-__all__ = ["SQLTask", "SQLTasks", "SQLSettings"]
-
 
 logger = logging.getLogger(__name__)
 
 
+__all__ = ["SQLTask", "SQLTasks", "SQLSettings"]
+
+
 class SQLTask(BaseTask, SQLModel, table=True):  # type: ignore
-    """
-    SQLTask class. Defines the Task for SQL Backend
-
-    Usage:
-
-        >>> from arend.backends.sql import SQLSettings
-        >>>
-        >>> settings = SQLSettings(
-        >>>     sql_dsn="postgresql+psycopg2://user:pass@postgres:5432/db"
-        >>> )
-        >>> SQLTask = SQLSettings.backend()  # type: Type[SQLLog]
-        >>> task = SQLTask(name="My task", description="A cool task")
-        >>> task.save()
-        >>>
-        >>> assert task.dict() == {"name": "My task", ...}
-        >>> assert task.json() == '{"name": "My task", ...}'
-        >>>
-        >>> task = SQLTask.get(uuid=UUID("<your-uuid>"))
-        >>> assert task.description == "A cool task"
-        >>>
-        >>> assert task.delete() == 1
-    """
 
     __tablename__ = "arend_tasks"
 
     uuid: UUID = Field(default_factory=uuid4, primary_key=True)
+    args: str = None
+    kwargs: str = None
 
     class Meta:
         settings: "ArendSettings"
@@ -57,7 +38,6 @@ class SQLTask(BaseTask, SQLModel, table=True):  # type: ignore
         Yield a connection
         """
         engine = create_engine(url=cls.Meta.settings.backend.sql_dsn)
-
         with Session(engine) as session:
             yield session
 

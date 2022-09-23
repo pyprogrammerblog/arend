@@ -19,8 +19,7 @@ class ArendTask(BaseModel):
     """
 
     name: str
-    location: str
-    processor: Callable
+    func: Callable
     queue: str = None
     priority: int = None
     delay: Union[timedelta, int] = None
@@ -30,13 +29,13 @@ class ArendTask(BaseModel):
         return self.run(*args, **kwargs)
 
     def __repr__(self):
-        return f"<{self.__class__.__name__} at {self.location}>"
+        return f"<{self.__class__.__name__} at {self.__class__.__module__}>"
 
     def run(self, *args, **kwargs):
         """
         Run the task immediately.
         """
-        return self.processor(*args, **kwargs)
+        return self.func(*args, **kwargs)
 
     def apply_async(
         self,
@@ -56,7 +55,7 @@ class ArendTask(BaseModel):
         # create and save a task in your backend
         task = Task(
             name=self.name,
-            location=self.location,
+            func=self.func,
             queue=self.queue or queue,
             args=args or Task.args,
             kwargs=kwargs or Task.kwargs,
@@ -91,8 +90,7 @@ def arend_task(
         def wrapper_register():
             return ArendTask(
                 name=func.__name__,
-                location=func.__module__,
-                processor=func,
+                func=func,
                 queue=queue,
                 priority=priority,
                 delay=delay,

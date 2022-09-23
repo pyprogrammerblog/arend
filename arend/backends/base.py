@@ -48,7 +48,7 @@ class BaseTask(BaseModel):
     end_time: Optional[datetime] = Field(default=None)
 
     args: tuple = Field(default_factory=tuple, description="Task args")
-    kwargs: dict = Field(default_factory=dict, description="Task arguments")
+    kwargs: dict = Field(default_factory=dict, description="Task kwargs")
 
     queue: str = Field(..., description="Queue name")
     delay: int = Field(default=0, description="Queue delay")
@@ -79,7 +79,9 @@ class BaseTask(BaseModel):
             conn.put(
                 body=str(self.uuid),
                 priority=self.priority,
-                delay=self.delay + self.count_retries * 1,
+                delay=self.delay
+                + self.count_retries
+                * self.Meta.settings.task_retry_backoff_factor,
             )
             self.status = Status.PENDING
             self.save()
