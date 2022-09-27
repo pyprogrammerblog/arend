@@ -40,9 +40,7 @@ def consumer(
 
     while True:
 
-        with BeanstalkdConnection(
-            queue=queue, settings=settings.beanstalkd
-        ) as conn:
+        with BeanstalkdConnection(queue, settings=settings.beanstalkd) as conn:
 
             message = conn.reserve(timeout=timeout)
             if message is None and not long_polling:
