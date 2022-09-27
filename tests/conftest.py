@@ -7,8 +7,7 @@ from arend.settings.arend import BeanstalkdSettings
 from arend.brokers.beanstalkd import BeanstalkdConnection
 
 
-def flush_beanstalkd_queue(queue: str):
-    settings = BeanstalkdSettings(host="beanstalkd", port=11300)
+def flush_beanstalkd_queue(queue: str, settings: BeanstalkdSettings):
     with BeanstalkdConnection(queue=queue, settings=settings) as conn:
         while True:
             message = conn.reserve(timeout=0)
@@ -38,10 +37,11 @@ def redis_backend():
 
 
 @pytest.fixture(scope="function")
-def flush_queue():
-    flush_beanstalkd_queue(queue="test")
-    yield
-    flush_beanstalkd_queue(queue="test")
+def beanstalkd_setting():
+    settings = BeanstalkdSettings(host="beanstalkd", port=11300)
+    flush_beanstalkd_queue(queue="test", settings=settings)
+    yield settings
+    flush_beanstalkd_queue(queue="test", settings=settings)
 
 
 @pytest.fixture(scope="function")

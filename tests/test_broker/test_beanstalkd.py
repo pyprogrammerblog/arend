@@ -4,11 +4,13 @@ from arend.brokers.beanstalkd import BeanstalkdConnection
 from pystalkd.Beanstalkd import CommandFailed
 
 
-def test_beanstalkd_broker(flush_queue, env_vars_mongo):
+def test_beanstalkd_broker(beanstalkd_setting):
 
     body = str(uuid4())
 
-    with BeanstalkdConnection(queue="test") as conn:
+    with BeanstalkdConnection(
+        queue="test", settings=beanstalkd_setting
+    ) as conn:
 
         conn.put(body=body)
 

@@ -13,7 +13,7 @@ def test_create_settings_passing_params_redis(redis_backend):
     )
 
     Task = settings.get_backend()
-    task: RedisTask = Task(name="My task", queue="test", func=lambda x: x + 1)
+    task: RedisTask = Task(name="My task", queue="test")
 
     assert not redis_backend.get(str(task.uuid))
 
@@ -33,7 +33,7 @@ def test_create_settings_env_vars_redis(redis_backend, env_vars_redis):
 
     settings = Settings()
     Task = settings.arend.get_backend()
-    task: RedisTask = Task(name="My task", queue="test", func=lambda x: x + 1)
+    task: RedisTask = Task(name="My task", queue="test")
 
     assert not redis_backend.get(str(task.uuid))
 

@@ -23,10 +23,8 @@ class BeanstalkdConnection:
     when interacting with our queue.
     """
 
-    def __init__(self, queue: str, settings: BeanstalkdSettings = None):
-        from arend.settings import Settings
-
-        self.settings = settings or Settings().arend.beanstalkd
+    def __init__(self, queue: str, settings: BeanstalkdSettings):
+        self.settings = settings
         self.connection = Connection(
             host=self.settings.host, port=self.settings.port
         )
