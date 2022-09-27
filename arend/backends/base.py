@@ -7,6 +7,12 @@ from typing import Optional
 from uuid import uuid4, UUID
 from typing import TYPE_CHECKING
 from arend.brokers.beanstalkd import BeanstalkdConnection
+from arend.settings.tasks import (
+    TASK_DELAY,
+    TASK_PRIORITY,
+    TASK_RETRY_BACKOFF_FACTOR,
+    TASK_MAX_RETRIES,
+)
 
 import importlib
 import logging
@@ -15,7 +21,7 @@ import traceback
 
 if TYPE_CHECKING:
     from arend.arend import ArendTask
-    from arend.settings.settings import ArendSettings
+    from arend.settings.arend import ArendSettings
 
 
 logger = logging.getLogger(__name__)
@@ -51,13 +57,14 @@ class BaseTask(BaseModel):
     kwargs: dict = Field(default_factory=dict, description="Task kwargs")
 
     queue: str = Field(..., description="Queue name")
-    delay: int = Field(default=0, description="Queue delay")
-    priority: int = Field(default=1, description="Queue priority")
+    delay: int = Field(default=TASK_DELAY, description="Queue delay")
+    priority: int = Field(default=TASK_PRIORITY, description="Queue priority")
+    count_retries: int = Field(default=0, description="Number of retries")
+    max_retries: int = Field(default=TASK_MAX_RETRIES)
+    retry_backoff_factor: int = Field(default=TASK_RETRY_BACKOFF_FACTOR)
 
     created: datetime = Field(default_factory=datetime.utcnow)
     updated: datetime = Field(default=None)
-    count_retries: int = Field(default=0, description="Number of retries")
-    max_retries: int = Field(default=3, description="Max retries")
 
     class Meta:
         settings: "ArendSettings"
@@ -80,8 +87,7 @@ class BaseTask(BaseModel):
                 body=str(self.uuid),
                 priority=self.priority,
                 delay=self.delay
-                + self.count_retries
-                * self.Meta.settings.task_retry_backoff_factor,
+                + self.count_retries * self.retry_backoff_factor,
             )
             self.status = Status.PENDING
             self.save()

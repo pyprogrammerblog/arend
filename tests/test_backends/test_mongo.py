@@ -1,6 +1,6 @@
 import uuid
 from arend.settings import Settings, ArendSettings
-from arend.settings.settings import BeanstalkdSettings
+from arend.settings.arend import BeanstalkdSettings
 from arend.backends.mongo import MongoSettings
 from tests.conftest import task_count
 

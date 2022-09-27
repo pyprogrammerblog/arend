@@ -23,22 +23,12 @@ services:
     ports:
       - "27017:27017"
 
-  postgres:
-    image: postgres:latest
-    environment:
-      POSTGRES_DB: db
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
-    ports:
-      - "5432:5432"
-
   app:
     build:
       context: .
       dockerfile: Dockerfile
     depends_on:
       - beanstalkd
-      - postgres
       - mongo
       - redis
     environment:

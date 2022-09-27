@@ -44,7 +44,7 @@ consumer(queue="my_queue", settings=settings)
 
 Backends
 -------------------
-The available backends to store logs are **Mongo**, **Redis** and **SQL**.
+The available backends to store logs are **Mongo** and **Redis**.
 Please read the [docs](https://arend.readthedocs.io/en/latest/) 
 for further information.
 
@@ -53,11 +53,6 @@ Setting your backend with environment variables
 You can set your backend by defining env vars.
 The `AREND__` prefix indicates that it belongs to `ProgressUpdater`.
 ```shell
-# SQL
-AREND__SQL_DSN='postgresql+psycopg2://user:pass@postgres:5432/db'
-AREND__SQL_TABLE='logs'
-...
-
 # Redis
 AREND__REDIS_HOST='redis'
 AREND__REDIS_DB='1'

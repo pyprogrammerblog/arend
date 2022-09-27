@@ -4,11 +4,6 @@ import os
 from arend import arend_task
 from pymongo.mongo_client import MongoClient
 from arend.worker.consumer import consumer
-from sqlalchemy_utils import drop_database
-from sqlalchemy_utils import database_exists
-from sqlalchemy_utils import create_database
-from sqlmodel import create_engine, Session
-from arend.backends.sql import SQLTask
 
 
 @pytest.fixture(scope="function")
@@ -29,22 +24,6 @@ def redis_backend():
         r.flushdb()
         yield r
         r.flushdb()
-
-
-@pytest.fixture(scope="function")
-def sql_backend():
-    postgres_uri = "postgresql+psycopg2://user:pass@postgres:5432/db"
-    if database_exists(postgres_uri):
-        drop_database(postgres_uri)
-    create_database(postgres_uri)
-
-    engine = create_engine(url=postgres_uri)
-    SQLTask.metadata.create_all(engine)
-
-    with Session(engine) as session:
-        yield session
-
-    drop_database(postgres_uri)
 
 
 @pytest.fixture(scope="function")
@@ -86,23 +65,6 @@ def env_vars_mongo():
         del os.environ["AREND__BACKEND__MONGO_CONNECTION"]
         del os.environ["AREND__BACKEND__MONGO_DB"]
         del os.environ["AREND__BACKEND__MONGO_COLLECTION"]
-        del os.environ["AREND__BEANSTALKD__HOST"]
-        del os.environ["AREND__BEANSTALKD__PORT"]
-
-
-@pytest.fixture(scope="function")
-def env_vars_sql():
-    os.environ[
-        "AREND__BACKEND__SQL_DSN"
-    ] = "postgresql+psycopg2://user:pass@postgres:5432/db"
-    os.environ["AREND__BACKEND__SQL_TABLE"] = "logs"
-    os.environ["AREND__BEANSTALKD__HOST"] = "beanstalkd"
-    os.environ["AREND__BEANSTALKD__PORT"] = "11300"
-    try:
-        yield
-    finally:
-        del os.environ["AREND__BACKEND__SQL_DSN"]
-        del os.environ["AREND__BACKEND__SQL_TABLE"]
         del os.environ["AREND__BEANSTALKD__HOST"]
         del os.environ["AREND__BEANSTALKD__PORT"]
 

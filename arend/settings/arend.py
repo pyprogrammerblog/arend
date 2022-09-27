@@ -3,7 +3,17 @@ from typing import Union, Type
 from arend.brokers.beanstalkd import BeanstalkdSettings
 from arend.backends.redis import RedisSettings, RedisTask
 from arend.backends.mongo import MongoSettings, MongoTask
-from arend.backends.sql import SQLSettings, SQLTask
+from arend.settings.tasks import (
+    TASK_DELAY,
+    TASK_PRIORITY,
+    TASK_RETRY_BACKOFF_FACTOR,
+    TASK_MAX_RETRIES,
+)
+
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 __all__ = [
@@ -11,10 +21,8 @@ __all__ = [
     "ArendSettings",
     "MongoSettings",
     "RedisSettings",
-    "SQLSettings",
     "RedisTask",
     "MongoTask",
-    "SQLTask",
 ]
 
 
@@ -22,14 +30,13 @@ class ArendSettings(BaseModel):
     """ """
 
     beanstalkd: BeanstalkdSettings
-    backend: Union[MongoSettings, RedisSettings, SQLSettings]
-    task_max_retries: int = 10
-    task_retry_backoff_factor: int = 1
-    task_priority: int = None
-    task_delay: int = None
-    task_delay_factor: int = 10
+    backend: Union[MongoSettings, RedisSettings]
+    task_max_retries: int = TASK_MAX_RETRIES
+    task_retry_backoff_factor: int = TASK_RETRY_BACKOFF_FACTOR
+    task_priority: int = TASK_PRIORITY
+    task_delay: int = TASK_DELAY
 
-    def get_backend(self) -> Type[Union[MongoTask, RedisTask, SQLTask]]:
+    def get_backend(self) -> Type[Union[MongoTask, RedisTask]]:
         """
         Return a Task with configuration already set
         """

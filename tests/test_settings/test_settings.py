@@ -1,6 +1,5 @@
 from arend.settings import Settings, ArendSettings
-from arend.backends.sql import SQLSettings, SQLTask
-from arend.settings.settings import BeanstalkdSettings
+from arend.settings.arend import BeanstalkdSettings
 from arend.backends.mongo import MongoSettings, MongoTask
 from arend.backends.redis import RedisSettings, RedisTask
 
@@ -16,6 +15,7 @@ def test_create_settings_passing_params_redis():
 
     klass = settings.get_backend()
     assert issubclass(klass, RedisTask)
+    assert klass.Meta.settings == settings
 
 
 def test_create_settings_passing_params_mongo():
@@ -35,22 +35,6 @@ def test_create_settings_passing_params_mongo():
     assert klass.Meta.settings == settings
 
 
-def test_create_settings_passing_params_sql():
-
-    sql_settings = SQLSettings(
-        sql_dsn="postgresql+psycopg2://user:pass@postgres:5432/db",
-        sql_table="logs",
-    )
-    beanstalkd_settings = BeanstalkdSettings(host="beanstalkd", port=11300)
-    settings = ArendSettings(
-        backend=sql_settings, beanstalkd=beanstalkd_settings
-    )
-
-    klass = settings.get_backend()
-    assert issubclass(klass, SQLTask)
-    assert klass.Meta.settings == settings
-
-
 # env vars
 def test_create_settings_env_vars_redis(env_vars_redis):
     settings = Settings()
@@ -64,10 +48,3 @@ def test_create_settings_env_vars_mongo(env_vars_mongo):
     klass = settings.arend.get_backend()
     assert klass.Meta.settings == settings.arend
     assert issubclass(klass, MongoTask)
-
-
-def test_create_settings_env_vars_sql(env_vars_sql):
-    settings = Settings()
-    klass = settings.arend.get_backend()
-    assert klass.Meta.settings == settings.arend
-    assert issubclass(klass, SQLTask)

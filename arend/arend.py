@@ -1,8 +1,14 @@
 from arend.settings import ArendSettings, Settings
-from arend.backends import MongoTask, RedisTask, SQLTask
-from pydantic import BaseModel
+from arend.backends import MongoTask, RedisTask
 from typing import Callable, Union
+from pydantic import BaseModel
 from datetime import timedelta
+from arend.settings.tasks import (
+    TASK_DELAY,
+    TASK_PRIORITY,
+    TASK_RETRY_BACKOFF_FACTOR,
+    TASK_MAX_RETRIES,
+)
 
 import functools
 import logging
@@ -21,8 +27,10 @@ class ArendTask(BaseModel):
     name: str
     func: Callable
     queue: str = None
-    priority: int = None
-    delay: Union[timedelta, int] = None
+    priority: int = TASK_PRIORITY
+    delay: Union[timedelta, int] = TASK_DELAY
+    max_retries: int = TASK_MAX_RETRIES
+    retry_backoff_factor: int = TASK_RETRY_BACKOFF_FACTOR
     settings: ArendSettings = None
 
     def __call__(self, *args, **kwargs):
@@ -40,12 +48,14 @@ class ArendTask(BaseModel):
     def apply_async(
         self,
         queue: str = None,
-        priority: int = None,
-        delay: Union[timedelta, int] = 0,
         args: tuple = None,
         kwargs: dict = None,
+        priority: int = TASK_PRIORITY,
+        delay: Union[timedelta, int] = TASK_DELAY,
+        max_retries: int = TASK_MAX_RETRIES,
+        retry_backoff_factor: int = TASK_RETRY_BACKOFF_FACTOR,
         settings: ArendSettings = settings,
-    ) -> Union[MongoTask, RedisTask, SQLTask]:
+    ) -> Union[MongoTask, RedisTask]:
         """
         Run task asynchronously.
         """
@@ -59,21 +69,32 @@ class ArendTask(BaseModel):
             queue=self.queue or queue,
             args=args or Task.args,
             kwargs=kwargs or Task.kwargs,
-            priority=priority or self.priority or Task.priority,
-            delay=delay or self.delay or Task.delay,
+            priority=priority
+            or self.priority
+            or settings.task_priority
+            or TASK_PRIORITY,
+            delay=delay or self.delay or settings.task_delay or TASK_DELAY,
+            max_retries=max_retries
+            or self.max_retries
+            or settings.task_max_retries
+            or TASK_MAX_RETRIES,
+            retry_backoff_factor=retry_backoff_factor
+            or self.retry_backoff_factor
+            or settings.task_retry_backoff_factor
+            or TASK_RETRY_BACKOFF_FACTOR,
         ).save()  # default to SCHEDULED
 
-        # put into the queue and set task as PENDING
-        task.send_to_queue()
+        task.send_to_queue()  # put into the queue and set task as PENDING
 
-        # return a PENDING task
-        return task
+        return task  # return a PENDING task
 
 
 def arend_task(
     queue: str = None,
-    priority: int = None,
-    delay: Union[timedelta, int] = None,
+    priority: int = TASK_PRIORITY,
+    delay: Union[timedelta, int] = TASK_DELAY,
+    max_retries: int = TASK_MAX_RETRIES,
+    retry_backoff_factor: int = TASK_RETRY_BACKOFF_FACTOR,
     settings: ArendSettings = None,
 ):
     """
@@ -94,6 +115,8 @@ def arend_task(
                 queue=queue,
                 priority=priority,
                 delay=delay,
+                max_retries=max_retries,
+                retry_backoff_factor=retry_backoff_factor,
                 settings=settings,
             )
 

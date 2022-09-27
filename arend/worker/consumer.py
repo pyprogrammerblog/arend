@@ -25,7 +25,7 @@ def consumer(
         timeout: int. Polling timeout.
         sleep_time: float. Sleeping time between polling cycles.
         long_polling: bool. Break the loop if no more messages.
-        settings: MongoSettings, RedisSettings, SQLSettings, None.
+        settings: ArendSettings, None.
             Backend settings. If no settings are passed, the consumer
             will try to get them from env variables.
 
