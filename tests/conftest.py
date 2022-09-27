@@ -38,7 +38,7 @@ def redis_backend():
 
 
 @pytest.fixture(scope="function")
-def flush_queue(mongo_backend):
+def flush_queue():
     flush_beanstalkd_queue(queue="test")
     yield
     flush_beanstalkd_queue(queue="test")

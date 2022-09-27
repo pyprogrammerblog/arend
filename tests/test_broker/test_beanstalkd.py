@@ -4,7 +4,7 @@ from arend.brokers.beanstalkd import BeanstalkdConnection
 from pystalkd.Beanstalkd import CommandFailed
 
 
-def test_beanstalkd_broker(env_vars_mongo, flush_queue):
+def test_beanstalkd_broker(flush_queue, env_vars_mongo):
 
     body = str(uuid4())
 
