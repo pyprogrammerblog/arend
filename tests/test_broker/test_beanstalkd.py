@@ -44,6 +44,6 @@ def test_beanstalkd_broker_put_messages(beanstalkd_setting):
         queue="test", settings=beanstalkd_setting
     ) as conn:
         body = str(uuid4())
-        conn.put(body=str(uuid4()))
+        conn.put(body=body)
         job = conn.reserve()
         assert job.body == body
