@@ -44,7 +44,6 @@ def test_arend_task_redis_backend(beanstalkd_setting, redis_backend):
         queue="test", args=("capitalize",), settings=settings
     )
     assert 1 == redis_backend.dbsize()
-
     assert "PENDING" == json.loads(redis_backend.get(str(task.uuid)))["status"]
 
     consumer(queue="test", long_polling=False, timeout=0, settings=settings)
@@ -86,7 +85,6 @@ def test_arend_task_redis_env_vars_backend(
         queue="test", args=("capitalize",), settings=settings
     )
     assert 1 == redis_backend.dbsize()
-
     assert "PENDING" == json.loads(redis_backend.get(str(task.uuid)))["status"]
 
     consumer(queue="test", long_polling=False, timeout=0, settings=settings)
