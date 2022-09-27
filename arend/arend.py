@@ -24,12 +24,13 @@ class ArendTask(BaseModel):
     ArendTask
     """
 
+    queue: str
     name: str
-    func: Callable
-    queue: str = None
+    location: str
+    processor: Callable
     priority: int = TASK_PRIORITY
-    delay: Union[timedelta, int] = TASK_DELAY
     max_retries: int = TASK_MAX_RETRIES
+    delay: Union[timedelta, int] = TASK_DELAY
     retry_backoff_factor: int = TASK_RETRY_BACKOFF_FACTOR
     settings: ArendSettings = None
 
@@ -43,7 +44,7 @@ class ArendTask(BaseModel):
         """
         Run the task immediately.
         """
-        return self.func(*args, **kwargs)
+        return self.processor(*args, **kwargs)
 
     def apply_async(
         self,
@@ -51,8 +52,8 @@ class ArendTask(BaseModel):
         args: tuple = None,
         kwargs: dict = None,
         priority: int = TASK_PRIORITY,
-        delay: Union[timedelta, int] = TASK_DELAY,
         max_retries: int = TASK_MAX_RETRIES,
+        delay: Union[timedelta, int] = TASK_DELAY,
         retry_backoff_factor: int = TASK_RETRY_BACKOFF_FACTOR,
         settings: ArendSettings = settings,
     ) -> Union[MongoTask, RedisTask]:
@@ -65,10 +66,10 @@ class ArendTask(BaseModel):
         # create and save a task in your backend
         task = Task(
             name=self.name,
-            func=self.func,
+            location=self.location,
             queue=self.queue or queue,
-            args=args or Task.args,
-            kwargs=kwargs or Task.kwargs,
+            args=args or (),
+            kwargs=kwargs or {},
             priority=priority
             or self.priority
             or settings.task_priority
@@ -111,7 +112,8 @@ def arend_task(
         def wrapper_register():
             return ArendTask(
                 name=func.__name__,
-                func=func,
+                location=func.__module__,
+                processor=func,
                 queue=queue,
                 priority=priority,
                 delay=delay,

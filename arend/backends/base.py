@@ -1,5 +1,4 @@
 from datetime import datetime
-from inspect import getmembers
 from pydantic import BaseModel
 from pydantic import Field
 from typing import List
@@ -48,7 +47,7 @@ class BaseTask(BaseModel):
     location: str = Field(default="tasks", description="Module location")
 
     status: str = Field(default=Status.SCHEDULED, description="Status")
-    result: Optional[str] = Field(default=None, description="Task result")
+    result: str = Field(default=None, description="Task result")
     detail: Optional[str] = Field(description="Task details")
     start_time: Optional[datetime] = Field(default=None)
     end_time: Optional[datetime] = Field(default=None)
@@ -140,8 +139,8 @@ class BaseTask(BaseModel):
         Returns: ArendTask. Returns an Arend Task signature.
         """
         module = importlib.import_module(self.location)
-        tasks = dict(getmembers(module, lambda x: isinstance(x, ArendTask)))
-        return tasks[self.name]
+        task = getattr(module, self.name)
+        return task
 
 
 class BaseTasks(BaseModel):

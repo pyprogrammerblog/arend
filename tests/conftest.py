@@ -3,7 +3,18 @@ import pytest
 import os
 from arend import arend_task
 from pymongo.mongo_client import MongoClient
-from arend.worker.consumer import consumer
+from arend.settings.arend import BeanstalkdSettings
+from arend.brokers.beanstalkd import BeanstalkdConnection
+
+
+def flush_beanstalkd_queue(queue: str):
+    settings = BeanstalkdSettings(host="beanstalkd", port=11300)
+    with BeanstalkdConnection(queue=queue, settings=settings) as conn:
+        while True:
+            message = conn.reserve(timeout=0)
+            if not message:
+                break
+            message.delete()
 
 
 @pytest.fixture(scope="function")
@@ -27,10 +38,10 @@ def redis_backend():
 
 
 @pytest.fixture(scope="function")
-def flush_queue():
-    consumer(queue="test", timeout=0, long_polling=False)
+def flush_queue(mongo_backend):
+    flush_beanstalkd_queue(queue="test")
     yield
-    consumer(queue="test", timeout=0, long_polling=False)
+    flush_beanstalkd_queue(queue="test")
 
 
 @pytest.fixture(scope="function")
@@ -78,8 +89,8 @@ def task_capitalize(name: str):
 
 
 @arend_task(queue="test")
-def task_count(name: str, to_count: str):
+def task_capitalize_all(name: str):
     """
     Example task for testing
     """
-    return name.count(x=to_count)
+    return name.upper()

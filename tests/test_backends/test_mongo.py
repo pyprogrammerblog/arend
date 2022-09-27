@@ -2,7 +2,6 @@ import uuid
 from arend.settings import Settings, ArendSettings
 from arend.settings.arend import BeanstalkdSettings
 from arend.backends.mongo import MongoSettings
-from tests.conftest import task_count
 
 
 def test_create_settings_passing_params_mongo(mongo_backend):
@@ -18,7 +17,7 @@ def test_create_settings_passing_params_mongo(mongo_backend):
     )
 
     Task = settings.get_backend()
-    task = Task(name="My task", queue="test", func=task_count)
+    task = Task(name="My task", queue="test")
 
     assert 0 == mongo_backend.count_documents(filter={})
 
@@ -40,7 +39,7 @@ def test_create_settings_env_vars_mongo(mongo_backend, env_vars_mongo):
 
     settings = Settings()
     Task = settings.arend.get_backend()
-    task = Task(name="My task", queue="test", func=task_count)
+    task = Task(name="My task", queue="test")
 
     assert 0 == mongo_backend.count_documents(filter={})
 
