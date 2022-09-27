@@ -36,3 +36,14 @@ def test_beanstalkd_broker(beanstalkd_setting):
 
         with pytest.raises(CommandFailed):
             job.delete()
+
+
+def test_beanstalkd_broker_put_messages(beanstalkd_setting):
+
+    with BeanstalkdConnection(
+        queue="test", settings=beanstalkd_setting
+    ) as conn:
+        body = str(uuid4())
+        conn.put(body=str(uuid4()))
+        job = conn.reserve()
+        assert job.body == body
