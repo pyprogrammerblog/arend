@@ -21,7 +21,8 @@ logger = logging.getLogger(__name__)
 
 class ArendTask(BaseModel):
     """
-    ArendTask
+    Defines the ArendTask. This class handles writing
+    to the Backend and the Queue the Arend tasks
     """
 
     queue: str
@@ -99,12 +100,49 @@ def arend_task(
     settings: ArendSettings = None,
 ):
     """
-    Register functions as async functions
-    Examples:
+    Register functions as arend task
 
-    @arend_task()
-    def task(kwargs):
-        return "a result"
+    Usage:
+        >>> from arend import arend_task
+        >>> from arend.backends.mongo import MongoSettings
+        >>> from arend.brokers import BeanstalkdSettings
+        >>> from arend.settings import ArendSettings
+        >>> from arend.worker import consumer
+        >>>
+        >>> settings = ArendSettings(
+        >>>     beanstalkd=BeanstalkdSettings(host="beanstalkd", port=11300),
+        >>>     backend=MongoSettings(
+        >>>         mongo_connection="mongodb://user:pass@mongo:27017",
+        >>>         mongo_db="db",
+        >>>         mongo_collection="Tasks"
+        >>>     ),
+        >>> )
+        >>>
+        >>> @arend_task(queue="my_queue", settings=settings)
+        >>> def double(num: int):
+        >>>     return 2 * num
+        >>>
+        >>> double(2)  # returns 4
+        >>> task = double.apply_async(args=(4,))  # It is sent to the queue
+        >>>
+        >>> consumer(queue="my_queue", settings=settings)  # consume tasks
+        >>>
+        >>> Task = settings.get_backend()  # you can check your result backend
+        >>> task = Task.get(uuid=task.uuid)
+        >>> assert task.result == 4
+
+    By defining the backend in the environment variables:
+        >>> from arend import arend_task
+        >>> from arend.worker import consumer
+        >>>
+        >>>
+        >>> @arend_task(queue="my_queue")
+        >>> def double(num: int):
+        >>>     return 2 * num
+        >>>
+        >>> double.apply_async(args=(4,))  # It is sent to the queue
+        >>>
+        >>> consumer(queue="my_queue")  # consume tasks from the queue
     """
 
     def decorator(func):

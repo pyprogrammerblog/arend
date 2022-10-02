@@ -73,10 +73,8 @@ class MongoTask(BaseTask):
 
         Usage:
 
-            >>> ...
             >>> task = MongoTask.get(uuid=UUID("<your-uuid>"))
             >>> assert task.uuid == UUID("<your-uuid>")
-            >>>
         """
         with cls.mongo_collection() as collection:  # type: Collection
             if task := collection.find_one({"uuid": uuid}):
@@ -89,12 +87,10 @@ class MongoTask(BaseTask):
 
         Usage:
 
-            >>> ...
             >>> task = MongoTask(name="My Task")
             >>> task.save()
             >>> task.description = "A new description"
             >>> task.save()
-            >>> ...
         """
         self.updated = datetime.utcnow()
         with self.mongo_collection() as collection:  # type: Collection
@@ -111,10 +107,8 @@ class MongoTask(BaseTask):
 
         Usage:
 
-            >>> ...
             >>> assert task.delete() == 1  # count deleted 1
             >>> assert task.delete() == 0  # count deleted 0
-            >>> ...
         """
         with self.mongo_collection() as collection:  # type: Collection
             deleted = collection.delete_one({"uuid": self.uuid})

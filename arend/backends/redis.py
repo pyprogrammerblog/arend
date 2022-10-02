@@ -27,7 +27,7 @@ class RedisTask(BaseTask):
         >>>
         >>> settings = RedisSettings(
         >>>     redis_host="redis",
-        >>>     redis_port="6379",
+        >>>     redis_port=6379,
         >>>     redis_db="logs",
         >>>     redis_password="pass"
         >>> )
@@ -68,10 +68,8 @@ class RedisTask(BaseTask):
 
         Usage:
 
-            >>> ...
             >>> log = RedisTask.get(uuid=UUID("<your-uuid>"))
             >>> assert log.uuid == UUID("<your-uuid>")
-            >>>
         """
         with cls.redis_connection() as r:  # type: Redis
             if task := r.get(str(uuid)):
@@ -84,12 +82,10 @@ class RedisTask(BaseTask):
 
         Usage:
 
-            >>> ...
             >>> task = RedisTask(name="My Task")
             >>> task.save()
             >>> task.description = "A new description"
             >>> task.save()
-            >>> ...
         """
         self.updated = datetime.utcnow()
         with self.redis_connection() as r:  # type: Redis
@@ -102,10 +98,8 @@ class RedisTask(BaseTask):
 
         Usage:
 
-            >>> ...
             >>> assert task.delete() == 1  # count deleted 1
             >>> assert task.delete() == 0  # count deleted 0
-            >>> ...
         """
         with self.redis_connection() as r:  # type: Redis
             return r.delete(str(self.uuid))

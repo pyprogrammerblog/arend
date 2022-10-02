@@ -21,31 +21,33 @@ Basic usage
 
 Make sure you have the `arend` installed::
 
-   from arend import arend_task, consumer
+   from arend import arend_task
    from arend.backends.mongo import MongoSettings
-   from arend.settings import ArendSettings, BeanstalkdSettings
-
+   from arend.brokers import BeanstalkdSettings
+   from arend.settings import ArendSettings
+   from arend.worker import consumer
 
    settings = ArendSettings(
-       broker=BeanstalkdSettings(host="beanstalkd", port=11300),
+       beanstalkd=BeanstalkdSettings(host="beanstalkd", port=11300),
        backend=MongoSettings(
-           mongo_db="db",
-           mongo_collection="logs",
            mongo_connection="mongodb://user:pass@mongo:27017",
-       )
-       # more optional settings to be defined here...
+           mongo_db="db",
+           mongo_collection="Tasks"
+       ),
    )
 
-   # define your task
    @arend_task(queue="my_queue", settings=settings)
-   def double(num: int) -> int:
-       return num * 2
+   def double(num: int):
+       return 2 * num
 
-   # send it to the queue
-   double.apply_async()
+   double(2)  # returns 4
+   task = double.apply_async(args=(4,))  # It is sent to the queue
 
-   # consume tasks
-   consumer(queue="my_queue", settings=settings)
+   consumer(queue="my_queue", settings=settings)  # consume tasks from the queue
+
+   Task = settings.get_backend()  # you can check your backend for the result
+   task = Task.get(uuid=task.uuid)
+   assert task.result == 4
 
 
 Backends
@@ -68,6 +70,20 @@ The `AREND__` prefix indicates that it belongs to the Arend::
    AREND__MONGO_DB='db'
    AREND__MONGO_COLLECTION='logs'
    ...
+
+Now in your code::
+
+   from arend import arend_task
+   from arend.worker import consumer
+
+
+   @arend_task(queue="my_queue")
+   def double(num: int):
+       return 2 * num
+
+   double.apply_async(args=(4,))  # It is sent to the queue
+
+   consumer(queue="my_queue")
 
 
 .. toctree::

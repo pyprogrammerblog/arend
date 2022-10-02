@@ -31,8 +31,24 @@ class ArendSettings(BaseModel):
     Defines settings for the Arend
 
     Usage:
+        >>> from arend import arend_task
+        >>> from arend.backends.mongo import MongoSettings
+        >>> from arend.brokers import BeanstalkdSettings
+        >>> from arend.settings import ArendSettings
+        >>> from arend.worker import consumer
         >>>
-        >>>
+        >>> settings = ArendSettings(
+        >>>     beanstalkd=BeanstalkdSettings(host="beanstalkd", port=11300),
+        >>>     backend=MongoSettings(
+        >>>         mongo_connection="mongodb://user:pass@mongo:27017",
+        >>>         mongo_db="db",
+        >>>         mongo_collection="Tasks"
+        >>>     ),
+        >>>     task_max_retries = 3
+        >>>     task_retry_backoff_factor = 1
+        >>>     task_priority = 0
+        >>>     task_delay = 1
+        >>> )
     """
 
     beanstalkd: BeanstalkdSettings
@@ -44,7 +60,7 @@ class ArendSettings(BaseModel):
 
     def get_backend(self) -> Type[Union[MongoTask, RedisTask]]:
         """
-        Return a Task with configuration already set
+        Return a Task Backend with configuration already set
         """
         Task = self.backend.get_backend()
         Task.Meta.settings = self

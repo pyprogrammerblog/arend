@@ -1,8 +1,8 @@
 .. _settings:
 
 
-:mod:`Settings`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Settings
+==============
 
 .. automodule:: arend.settings
     :members: ArendSettings, BeanstalkdSettings
