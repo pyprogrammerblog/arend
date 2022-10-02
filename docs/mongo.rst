@@ -6,4 +6,4 @@ Mongo Backend
 
 .. automodule:: arend.backends.mongo
     :members: MongoSettings, MongoTask, MongoTasks
-    :exclude-members: get_collection
+    :exclude-members: mongo_collection
