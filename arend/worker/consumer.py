@@ -1,40 +1,54 @@
-from arend.brokers import QueueBroker
-from arend.settings import settings
-from arend.tube.task import Task
-
+from arend.brokers import BeanstalkdConnection
+from arend.settings import Settings, ArendSettings
+from uuid import UUID
 import logging
 import time
+
+__all__ = ["consumer"]
 
 
 logger = logging.getLogger(__name__)
 
 
-def consumer(queue_name: str, timeout: int = 20, testing: bool = False):
+def consumer(
+    queue: str,
+    timeout: int = 20,
+    sleep_time: float = 0.1,
+    long_polling: bool = False,
+    settings: ArendSettings = None,
+):
     """
-    Single consumer.
+    Consumer. Consume tasks from the queue.
 
-    :param queue_name:
-    :param timeout:
-    :param testing:
-    :return:
+    Args:
+        queue: str. Queue name.
+        timeout: int. Polling timeout.
+        sleep_time: float. Sleeping time between polling cycles.
+        long_polling: bool. Break the loop if no more messages.
+        settings: ArendSettings, None. If no settings are passed,
+            the consumer will try to get them from env variables.
+
+    Usage:
+        >>> from arend.worker.consumer import consumer
+        >>>
+        >>> consumer(queue="my_queue", timeout=0)
     """
 
-    run = True
+    settings = settings or Settings().arend
+    Task = settings.get_backend()
 
-    while run:
+    while True:
 
-        with QueueBroker(queue_name=queue_name) as broker:
+        with BeanstalkdConnection(queue, settings=settings.beanstalkd) as conn:
 
-            message = broker.reserve(timeout=timeout)
-            if message is None and testing:  # for testing purposes
-                run = False
-                continue
+            message = conn.reserve(timeout=timeout)
+            if message is None and not long_polling:
+                break  # if not long_polling, consume all messages and break
 
             if message:
-                queue_task = Task.get(uuid=message.body)
-                if queue_task:
-                    queue_task.run()  # run sync inside worker
+                if task := Task.get(uuid=UUID(message.body)):
+                    task.run()  # run task here
 
-                broker.delete(message)
+                message.delete()
 
-        time.sleep(settings.sleep_time_consumer)
+        time.sleep(sleep_time)

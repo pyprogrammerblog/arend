@@ -1,36 +1,55 @@
-from arend.brokers.base import BaseBroker
-from arend.settings import settings
 from pystalkd.Beanstalkd import Connection
+from pydantic import BaseModel
+from pydantic import Field
 
 import logging
-import pystalkd
-import uuid
+
+__all__ = ["BeanstalkdConnection", "BeanstalkdSettings"]
 
 
 logger = logging.getLogger(__name__)
 
 
-class BeanstalkdBroker(BaseBroker):
-    def __init__(self, queue_name: str):
-        self.queue_name = queue_name
-        self.connection = Connection(
-            host=settings.beanstalkd_host, port=settings.beanstalkd_port
-        )
-        self.connection.watch(name=queue_name)
-        self.connection.use(name=queue_name)
+class BeanstalkdSettings(BaseModel):
+    """
+    Defines settings for the Beanstalkd Queue
+    """
 
-    def __enter__(self):
-        return self
+    host: str = Field(description="Beanstalkd Host")
+    port: int = Field(description="Beanstalkd Port")
+
+
+class BeanstalkdConnection:
+    """
+    Beanstalkd Connection.
+
+    Defines a context manager to open and close connection
+    when interacting with our queue.
+
+    Usage:
+        >>> from arend.brokers import BeanstalkdConnection, BeanstalkdSettings
+        >>> from arend.backends.mongo import MongoSettings
+        >>>
+        >>> settings = BeanstalkdSettings(host="beanstalkd", port=11300)
+        >>> with BeanstalkdConnection(
+        >>>     queue="my_queue",
+        >>>     settings=settings
+        >>> ) as conn:
+        >>>     conn.put(body="my message")
+        >>>     ...
+        >>>
+    """
+
+    def __init__(self, queue: str, settings: BeanstalkdSettings):
+        self.settings = settings
+        self.connection = Connection(
+            host=self.settings.host, port=self.settings.port
+        )
+        self.connection.watch(queue)
+        self.connection.use(queue)
+
+    def __enter__(self: "BeanstalkdConnection") -> Connection:
+        return self.connection
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.connection.close()
-
-    def add_to_queue(self, task_uuid: uuid.UUID):
-        self.connection.put(body=str(task_uuid))
-
-    def reserve(self, timeout: int = None) -> pystalkd.Job:
-        job = self.connection.reserve(timeout=timeout)
-        return job
-
-    def delete(self, job: pystalkd.Job):
-        job.delete()
