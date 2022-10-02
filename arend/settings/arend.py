@@ -27,7 +27,13 @@ __all__ = [
 
 
 class ArendSettings(BaseModel):
-    """ """
+    """
+    Defines settings for the Arend
+
+    Usage:
+        >>>
+        >>>
+    """
 
     beanstalkd: BeanstalkdSettings
     backend: Union[MongoSettings, RedisSettings]

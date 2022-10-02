@@ -136,7 +136,7 @@ class BaseTask(BaseModel):
         """
         Get task signature.
 
-        Returns: ArendTask. Returns an Arend Task signature.
+        Returns: ArendTask.
         """
         module = importlib.import_module(self.location)
         task = getattr(module, self.name)

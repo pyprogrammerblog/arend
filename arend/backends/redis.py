@@ -31,7 +31,7 @@ class RedisTask(BaseTask):
         >>>     redis_db="logs",
         >>>     redis_password="pass"
         >>> )
-        >>> RedisTask = RedisSettings.backend()  # type: Type[RedisLog]
+        >>> RedisTask = RedisSettings.get_backend()  # type: Type[RedisLog]
         >>> task = RedisTask(name="My task", description="A cool task")
         >>> task.save()
         >>>
@@ -51,7 +51,7 @@ class RedisTask(BaseTask):
     @contextmanager
     def redis_connection(cls):
         """
-        Yield a Redis connection
+        Yield a Redis connection to a specific database
         """
         host = cls.Meta.settings.backend.redis_host
         port = cls.Meta.settings.backend.redis_port
@@ -113,7 +113,7 @@ class RedisTask(BaseTask):
 
 class RedisTasks(BaseModel):
     """
-    Defines the RedisLogs collection
+    Defines the RedisTasks collection
     """
 
     tasks: List[RedisTask] = Field(default_factory=list, description="Logs")
@@ -122,7 +122,7 @@ class RedisTasks(BaseModel):
 
 class RedisSettings(BaseModel):
     """
-    Redis Settings. Defines settings for Redis Backend
+    Defines settings for Redis Backend
     """
 
     redis_host: str = Field(..., description="Redis Host")
@@ -134,4 +134,7 @@ class RedisSettings(BaseModel):
     )
 
     def get_backend(self) -> Type[RedisTask]:
+        """
+        Returns a RedisTask class with settings already set
+        """
         return RedisTask

@@ -18,21 +18,20 @@ def consumer(
     settings: ArendSettings = None,
 ):
     """
-    Consumer. Consume messages from the queue.
+    Consumer. Consume tasks from the queue.
 
     Args:
         queue: str. Queue name.
         timeout: int. Polling timeout.
         sleep_time: float. Sleeping time between polling cycles.
         long_polling: bool. Break the loop if no more messages.
-        settings: ArendSettings, None.
-            Backend settings. If no settings are passed, the consumer
-            will try to get them from env variables.
+        settings: ArendSettings, None. If no settings are passed,
+            the consumer will try to get them from env variables.
 
     Usage:
         >>> from arend.worker.consumer import consumer
         >>>
-        >>> consumer(queue="my_queue")
+        >>> consumer(queue="my_queue", timeout=0)
     """
 
     settings = settings or Settings().arend

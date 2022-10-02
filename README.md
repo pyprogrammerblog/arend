@@ -51,7 +51,7 @@ for further information.
 Setting your backend with environment variables
 --------------------------------------------------
 You can set your backend by defining env vars.
-The `AREND__` prefix indicates that it belongs to `ProgressUpdater`.
+The `AREND__` prefix indicates that it belongs to the Arend.
 ```shell
 # Redis
 AREND__REDIS_HOST='redis'

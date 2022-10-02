@@ -15,10 +15,6 @@ logger = logging.getLogger(__name__)
 @click.argument("args", nargs=-1)
 def pool_consumers(args):
     """
-    Pool Consumers.
-
-    :param args: str.
-
     Example:
     ```python3 pool_processor --queue_1=4 --queue_2=2```
     """

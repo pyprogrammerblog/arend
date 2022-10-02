@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 class MongoTask(BaseTask):
     """
-    MongoTask class. Defines the Task for Mongo Backend
+    MongoTask class. Defines the Task Model for Mongo Backend
 
     Usage:
 
@@ -32,8 +32,8 @@ class MongoTask(BaseTask):
         >>>     mongo_db="db",
         >>>     mongo_collection="Tasks"
         >>> )
-        >>> MongoTask = MongoSettings.backend()  # type: Type[MongoTask]
-        >>> task = MongoTask(name="My task", description="A cool task")
+        >>> MongoTask = MongoSettings.get_backend()  # type: Type[MongoTask]
+        >>> task = MongoTask(name="My task", ...)
         >>> task.save()
         >>>
         >>> assert task.dict() == {"name": "My task", ...}
@@ -43,6 +43,7 @@ class MongoTask(BaseTask):
         >>> assert task.description == "A cool task"
         >>>
         >>> assert task.delete() == 1
+        >>> assert task.delete() == 0
     """
 
     class Meta:
@@ -52,7 +53,7 @@ class MongoTask(BaseTask):
     @contextmanager
     def mongo_collection(cls):
         """
-        Yield a Mongo connection to our Tasks Collection
+        Yield a MongoTask Collection
         """
         mongo_conn = cls.Meta.settings.backend.mongo_connection
         mongo_db = cls.Meta.settings.backend.mongo_db
@@ -139,4 +140,7 @@ class MongoSettings(BaseModel):
     mongo_collection: str = Field(..., description="Collection name")
 
     def get_backend(self) -> Type[MongoTask]:
+        """
+        Returns a MongoTask class with settings already set
+        """
         return MongoTask
